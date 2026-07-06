@@ -1,5 +1,6 @@
 #include "Weapons/BOWeaponComponent.h"
 
+#include "Components/BOHealthComponent.h"
 #include "Core/BOLogChannels.h"
 #include "Engine/World.h"
 #include "GameFramework/Controller.h"
@@ -30,6 +31,8 @@ UBOWeaponComponent::UBOWeaponComponent()
 	LastFireTime = -1000.0f;
 	LastHitConfirmTime = -1000.0f;
 	LastConfirmedDamage = 0.0f;
+	LastConfirmedRemainingHealth = -1.0f;
+	bLastHitWasFatal = false;
 	CurrentWeaponSlot = 0;
 
 	static ConstructorHelpers::FObjectFinder<UBOWeaponData> RifleDataFinder(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_Rifle.DA_BO_Rifle"));
@@ -328,13 +331,24 @@ void UBOWeaponComponent::HandleFire(const FVector& TraceStart, const FVector& Ai
 		APawn* OwnerPawn = Cast<APawn>(Owner);
 		AController* InstigatorController = OwnerPawn ? OwnerPawn->GetController() : nullptr;
 		const float Damage = GetDamage();
-		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), Damage, ShotDirection, Hit, InstigatorController, Owner, nullptr);
-		ClientConfirmHit(Hit.GetActor(), Damage);
+		UBOHealthComponent* TargetHealth = Hit.GetActor()->FindComponentByClass<UBOHealthComponent>();
+		const float HealthBeforeDamage = TargetHealth ? TargetHealth->GetHealth() : -1.0f;
 
-		UE_LOG(LogBOWeapons, Verbose, TEXT("%s hit %s for %.1f damage. Ammo: %d/%d"),
+		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), Damage, ShotDirection, Hit, InstigatorController, Owner, nullptr);
+
+		const float RemainingHealth = TargetHealth ? TargetHealth->GetHealth() : -1.0f;
+		const float ConfirmedDamage = TargetHealth
+			? FMath::Max(0.0f, HealthBeforeDamage - RemainingHealth)
+			: Damage;
+		const bool bFatalHit = TargetHealth && HealthBeforeDamage > 0.0f && RemainingHealth <= 0.0f;
+
+		ClientConfirmHit(Hit.GetActor(), ConfirmedDamage, RemainingHealth, bFatalHit);
+
+		UE_LOG(LogBOWeapons, Verbose, TEXT("%s hit %s for %.1f damage%s. Ammo: %d/%d"),
 			*GetNameSafe(Owner),
 			*GetNameSafe(Hit.GetActor()),
-			Damage,
+			ConfirmedDamage,
+			bFatalHit ? TEXT(" and eliminated them") : TEXT(""),
 			AmmoInMagazine,
 			GetMagazineSize());
 	}
@@ -437,13 +451,15 @@ const UBOWeaponData* UBOWeaponComponent::GetActiveWeaponData() const
 	return WeaponData;
 }
 
-void UBOWeaponComponent::ClientConfirmHit_Implementation(AActor* HitActor, float Damage)
+void UBOWeaponComponent::ClientConfirmHit_Implementation(AActor* HitActor, float Damage, float RemainingHealth, bool bFatalHit)
 {
 	if (const UWorld* World = GetWorld())
 	{
 		LastHitConfirmTime = World->GetTimeSeconds();
 		LastConfirmedDamage = Damage;
+		LastConfirmedRemainingHealth = RemainingHealth;
+		bLastHitWasFatal = bFatalHit;
 	}
 
-	OnHitConfirmed.Broadcast(HitActor, Damage);
+	OnHitConfirmed.Broadcast(HitActor, Damage, RemainingHealth, bFatalHit);
 }

@@ -189,12 +189,17 @@ void ConfigureStage1FeedbackAssets()
 	UBOCombatFeedbackData* Feedback = LoadOrCreateAsset<UBOCombatFeedbackData>(TEXT("/Game/BlastOperation/UI/Data/DA_BO_CombatFeedback"), TEXT("DA_BO_CombatFeedback"));
 	Feedback->CrosshairColor = FLinearColor(0.88f, 0.96f, 1.0f, 1.0f);
 	Feedback->HitMarkerColor = FLinearColor(1.0f, 0.78f, 0.16f, 1.0f);
+	Feedback->FatalHitMarkerColor = FLinearColor(1.0f, 0.18f, 0.1f, 1.0f);
+	Feedback->DamageNumberColor = FLinearColor(1.0f, 0.94f, 0.66f, 1.0f);
+	Feedback->FatalDamageNumberColor = FLinearColor(1.0f, 0.25f, 0.14f, 1.0f);
 	Feedback->StatusTextColor = FLinearColor(0.90f, 0.96f, 1.0f, 1.0f);
 	Feedback->ShadowColor = FLinearColor(0.0f, 0.0f, 0.0f, 0.85f);
 	Feedback->HitMarkerDuration = 0.2f;
+	Feedback->DamageNumberDuration = 0.58f;
 	Feedback->CrosshairHalfLength = 7.0f;
 	Feedback->HitMarkerLength = 16.0f;
 	Feedback->HitMarkerGap = 4.5f;
+	Feedback->DamageNumberRise = 28.0f;
 	SaveAsset(Feedback);
 }
 }

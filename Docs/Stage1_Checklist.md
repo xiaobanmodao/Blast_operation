@@ -24,6 +24,9 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Added weapon slot switching between Rifle and Pistol, preserving per-slot magazine state.
 - Added `UBOCombatFeedbackData` and `DA_BO_CombatFeedback` so HUD crosshair and hitmarker presentation are data driven.
 - Added `UBOCreateStage1AssetsCommandlet` to create Stage 1 input, weapon, and combat feedback assets from C++.
+- Expanded hit confirmation with actual damage, remaining health, and fatal-hit context.
+- Added HUD damage numbers, fatal-hit coloring, and elimination feedback.
+- Added replicated training target active state plus short local damage pulse feedback before reset.
 
 ## Current Verification
 
@@ -33,6 +36,6 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 
 ## Next
 
-- Add richer hit feedback for target and player damage.
 - Continue recoil, spread, and movement accuracy tuning.
 - Replace the debug Canvas HUD with a first UMG combat HUD when the gameplay values stabilize.
+- Add per-surface impact audio/visual feedback once weapon and target materials are locked.

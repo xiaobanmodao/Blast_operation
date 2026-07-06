@@ -60,26 +60,52 @@ void ABOHUD::DrawHUD()
 	TextItem.EnableShadow(FeedbackData ? FeedbackData->ShadowColor : FLinearColor::Black);
 	Canvas->DrawItem(TextItem);
 
-	if (WeaponComponent && GetWorld() && FeedbackData && GetWorld()->GetTimeSeconds() - WeaponComponent->GetLastHitConfirmTime() <= FeedbackData->HitMarkerDuration)
+	if (WeaponComponent && GetWorld() && FeedbackData)
 	{
-		const float HitmarkerSize = FeedbackData->HitMarkerLength;
-		const float HitmarkerGap = FeedbackData->HitMarkerGap;
-		const FLinearColor HitmarkerColor = FeedbackData->HitMarkerColor;
+		const float HitAge = GetWorld()->GetTimeSeconds() - WeaponComponent->GetLastHitConfirmTime();
+		const bool bFatalHit = WeaponComponent->WasLastHitFatal();
 
-		FCanvasLineItem HitTopLeft(FVector2D(Center.X - HitmarkerGap, Center.Y - HitmarkerGap), FVector2D(Center.X - HitmarkerSize, Center.Y - HitmarkerSize));
-		HitTopLeft.SetColor(HitmarkerColor);
-		Canvas->DrawItem(HitTopLeft);
+		if (HitAge <= FeedbackData->HitMarkerDuration)
+		{
+			const float HitmarkerSize = FeedbackData->HitMarkerLength;
+			const float HitmarkerGap = FeedbackData->HitMarkerGap;
+			const FLinearColor HitmarkerColor = bFatalHit ? FeedbackData->FatalHitMarkerColor : FeedbackData->HitMarkerColor;
 
-		FCanvasLineItem HitTopRight(FVector2D(Center.X + HitmarkerGap, Center.Y - HitmarkerGap), FVector2D(Center.X + HitmarkerSize, Center.Y - HitmarkerSize));
-		HitTopRight.SetColor(HitmarkerColor);
-		Canvas->DrawItem(HitTopRight);
+			FCanvasLineItem HitTopLeft(FVector2D(Center.X - HitmarkerGap, Center.Y - HitmarkerGap), FVector2D(Center.X - HitmarkerSize, Center.Y - HitmarkerSize));
+			HitTopLeft.SetColor(HitmarkerColor);
+			Canvas->DrawItem(HitTopLeft);
 
-		FCanvasLineItem HitBottomLeft(FVector2D(Center.X - HitmarkerGap, Center.Y + HitmarkerGap), FVector2D(Center.X - HitmarkerSize, Center.Y + HitmarkerSize));
-		HitBottomLeft.SetColor(HitmarkerColor);
-		Canvas->DrawItem(HitBottomLeft);
+			FCanvasLineItem HitTopRight(FVector2D(Center.X + HitmarkerGap, Center.Y - HitmarkerGap), FVector2D(Center.X + HitmarkerSize, Center.Y - HitmarkerSize));
+			HitTopRight.SetColor(HitmarkerColor);
+			Canvas->DrawItem(HitTopRight);
 
-		FCanvasLineItem HitBottomRight(FVector2D(Center.X + HitmarkerGap, Center.Y + HitmarkerGap), FVector2D(Center.X + HitmarkerSize, Center.Y + HitmarkerSize));
-		HitBottomRight.SetColor(HitmarkerColor);
-		Canvas->DrawItem(HitBottomRight);
+			FCanvasLineItem HitBottomLeft(FVector2D(Center.X - HitmarkerGap, Center.Y + HitmarkerGap), FVector2D(Center.X - HitmarkerSize, Center.Y + HitmarkerSize));
+			HitBottomLeft.SetColor(HitmarkerColor);
+			Canvas->DrawItem(HitBottomLeft);
+
+			FCanvasLineItem HitBottomRight(FVector2D(Center.X + HitmarkerGap, Center.Y + HitmarkerGap), FVector2D(Center.X + HitmarkerSize, Center.Y + HitmarkerSize));
+			HitBottomRight.SetColor(HitmarkerColor);
+			Canvas->DrawItem(HitBottomRight);
+		}
+
+		if (HitAge <= FeedbackData->DamageNumberDuration && WeaponComponent->GetLastConfirmedDamage() > 0.0f)
+		{
+			const float Progress = FMath::Clamp(HitAge / FeedbackData->DamageNumberDuration, 0.0f, 1.0f);
+			const float Alpha = 1.0f - Progress;
+			FLinearColor DamageColor = bFatalHit ? FeedbackData->FatalDamageNumberColor : FeedbackData->DamageNumberColor;
+			DamageColor.A *= Alpha;
+
+			const FString DamageText = bFatalHit
+				? FString::Printf(TEXT("ELIM +%.0f"), WeaponComponent->GetLastConfirmedDamage())
+				: FString::Printf(TEXT("+%.0f"), WeaponComponent->GetLastConfirmedDamage());
+			FCanvasTextItem DamageItem(
+				FVector2D(Center.X + 22.0f, Center.Y - 48.0f - FeedbackData->DamageNumberRise * Progress),
+				FText::FromString(DamageText),
+				GEngine->GetSmallFont(),
+				DamageColor);
+			DamageItem.EnableShadow(FeedbackData->ShadowColor);
+			DamageItem.Scale = FVector2D(bFatalHit ? 1.2f : 1.0f, bFatalHit ? 1.2f : 1.0f);
+			Canvas->DrawItem(DamageItem);
+		}
 	}
 }

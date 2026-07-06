@@ -7,7 +7,7 @@
 
 class UBOWeaponData;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBOHitConfirmedSignature, AActor*, HitActor, float, Damage);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FBOHitConfirmedSignature, AActor*, HitActor, float, Damage, float, RemainingHealth, bool, bFatalHit);
 
 UCLASS(ClassGroup = (BlastOperation), Blueprintable, meta = (BlueprintSpawnableComponent))
 class BLASTOPERATION_API UBOWeaponComponent : public UActorComponent
@@ -71,6 +71,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	float GetLastConfirmedDamage() const { return LastConfirmedDamage; }
 
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetLastConfirmedRemainingHealth() const { return LastConfirmedRemainingHealth; }
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	bool WasLastHitFatal() const { return bLastHitWasFatal; }
+
 	UPROPERTY(BlueprintAssignable, Category = "Blast Operation|Weapon")
 	FBOHitConfirmedSignature OnHitConfirmed;
 
@@ -85,7 +91,7 @@ protected:
 	void ServerEquipWeaponSlot(int32 SlotIndex);
 
 	UFUNCTION(Client, Unreliable)
-	void ClientConfirmHit(AActor* HitActor, float Damage);
+	void ClientConfirmHit(AActor* HitActor, float Damage, float RemainingHealth, bool bFatalHit);
 
 	void HandleFire(const FVector& TraceStart, const FVector& AimDirection);
 	void HandleEquipWeaponSlot(int32 SlotIndex);
@@ -156,5 +162,7 @@ protected:
 	float LastFireTime;
 	float LastHitConfirmTime;
 	float LastConfirmedDamage;
+	float LastConfirmedRemainingHealth;
+	bool bLastHitWasFatal;
 	FTimerHandle ReloadTimerHandle;
 };
