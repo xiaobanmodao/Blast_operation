@@ -38,6 +38,7 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Added a visible first-person weapon view model, editor-visible training target setup, map-level `BOGameModeBase` override, and `VerifyStage1TestRange.py`.
 - Fixed first-person mouse pitch direction and added PlayerController-owned combat HUD fallback creation.
 - Hardened the prototype weapon view model so it force-loads its mesh, stays visible in game, and sits closer to the first-person camera center.
+- Expanded the native combat HUD from a single debug readout into top match info, health bar, ammo block, reload state, weapon slots, and accuracy readout.
 
 ## Current Verification
 

@@ -46,6 +46,66 @@ protected:
 	TObjectPtr<UTextBlock> StatusText;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> TopBarPanel;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> TopBarAccent;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> ModeText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> ScoreText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> RoundText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> HealthPanel;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> HealthBarBack;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> HealthBarFill;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> HealthValueText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> HealthLabelText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> ArmorText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> AmmoPanel;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> AmmoValueText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> AmmoLabelText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> WeaponNameText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> ReloadText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UImage> SlotPanel;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> SlotPrimaryText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> SlotSecondaryText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	TObjectPtr<UTextBlock> AccuracyText;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UTextBlock> DamageText;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
