@@ -26,6 +26,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Blast Operation|Weapon")
 	void Reload();
 
+	UFUNCTION(BlueprintCallable, Category = "Blast Operation|Weapon")
+	void EquipWeaponSlot(int32 SlotIndex);
+
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	int32 GetAmmoInMagazine() const { return AmmoInMagazine; }
 
@@ -34,6 +37,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	float GetDamage() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	int32 GetCurrentWeaponSlot() const { return CurrentWeaponSlot; }
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	int32 GetWeaponSlotCount() const { return WeaponSlots.Num(); }
 
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	FText GetDisplayName() const;
@@ -72,12 +81,20 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerReload();
 
+	UFUNCTION(Server, Reliable)
+	void ServerEquipWeaponSlot(int32 SlotIndex);
+
 	UFUNCTION(Client, Unreliable)
 	void ClientConfirmHit(AActor* HitActor, float Damage);
 
 	void HandleFire(const FVector& TraceStart, const FVector& AimDirection);
+	void HandleEquipWeaponSlot(int32 SlotIndex);
 	void BeginReload();
 	void CompleteReload();
+	void CancelReload();
+	void InitializeAmmoSlots();
+	void StoreCurrentAmmo();
+	const UBOWeaponData* GetActiveWeaponData() const;
 	bool CanFire() const;
 	float GetRange() const;
 	float GetReloadDuration() const;
@@ -87,6 +104,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
 	TObjectPtr<UBOWeaponData> WeaponData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	TArray<TObjectPtr<UBOWeaponData>> WeaponSlots;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "1"))
 	int32 FallbackMagazineSize;
@@ -120,6 +140,12 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
 	int32 AmmoInMagazine;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	int32 CurrentWeaponSlot;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	TArray<int32> AmmoBySlot;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
 	bool bIsReloading;

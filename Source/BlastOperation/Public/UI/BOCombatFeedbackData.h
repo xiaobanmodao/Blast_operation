@@ -1,0 +1,36 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DataAsset.h"
+#include "BOCombatFeedbackData.generated.h"
+
+UCLASS(BlueprintType)
+class BLASTOPERATION_API UBOCombatFeedbackData : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	FLinearColor CrosshairColor = FLinearColor::White;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	FLinearColor HitMarkerColor = FLinearColor(1.0f, 0.86f, 0.18f, 1.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	FLinearColor StatusTextColor = FLinearColor(0.92f, 0.96f, 1.0f, 1.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD")
+	FLinearColor ShadowColor = FLinearColor::Black;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "0.01"))
+	float HitMarkerDuration = 0.18f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "1.0"))
+	float CrosshairHalfLength = 8.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "1.0"))
+	float HitMarkerLength = 15.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "0.0"))
+	float HitMarkerGap = 5.0f;
+};

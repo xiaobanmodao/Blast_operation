@@ -4,7 +4,17 @@
 #include "Character/BOCharacter.h"
 #include "Components/BOHealthComponent.h"
 #include "Engine/Canvas.h"
+#include "UI/BOCombatFeedbackData.h"
 #include "Weapons/BOWeaponComponent.h"
+
+namespace
+{
+const UBOCombatFeedbackData* LoadFeedbackData()
+{
+	static const UBOCombatFeedbackData* FeedbackData = LoadObject<UBOCombatFeedbackData>(nullptr, TEXT("/Game/BlastOperation/UI/Data/DA_BO_CombatFeedback.DA_BO_CombatFeedback"));
+	return FeedbackData ? FeedbackData : GetDefault<UBOCombatFeedbackData>();
+}
+}
 
 void ABOHUD::DrawHUD()
 {
@@ -16,8 +26,9 @@ void ABOHUD::DrawHUD()
 	}
 
 	const FVector2D Center(Canvas->ClipX * 0.5f, Canvas->ClipY * 0.5f);
-	const float CrosshairSize = 8.0f;
-	const FLinearColor CrosshairColor = FLinearColor::White;
+	const UBOCombatFeedbackData* FeedbackData = LoadFeedbackData();
+	const float CrosshairSize = FeedbackData ? FeedbackData->CrosshairHalfLength : 8.0f;
+	const FLinearColor CrosshairColor = FeedbackData ? FeedbackData->CrosshairColor : FLinearColor::White;
 
 	FCanvasLineItem Horizontal(FVector2D(Center.X - CrosshairSize, Center.Y), FVector2D(Center.X + CrosshairSize, Center.Y));
 	Horizontal.SetColor(CrosshairColor);
@@ -39,20 +50,21 @@ void ABOHUD::DrawHUD()
 	const int32 Ammo = WeaponComponent ? WeaponComponent->GetAmmoInMagazine() : 0;
 	const int32 Magazine = WeaponComponent ? WeaponComponent->GetMagazineSize() : 0;
 	const FText WeaponName = WeaponComponent ? WeaponComponent->GetDisplayName() : FText::FromString(TEXT("No Weapon"));
+	const int32 WeaponSlot = WeaponComponent ? WeaponComponent->GetCurrentWeaponSlot() + 1 : 0;
 
 	const FString ReloadText = WeaponComponent && WeaponComponent->IsReloading()
 		? FString::Printf(TEXT(" | RELOADING %.1fs"), WeaponComponent->GetReloadRemaining())
 		: FString();
-	const FString StatusText = FString::Printf(TEXT("%s | HP %.0f | Ammo %d / %d%s"), *WeaponName.ToString(), Health, Ammo, Magazine, *ReloadText);
-	FCanvasTextItem TextItem(FVector2D(32.0f, Canvas->ClipY - 64.0f), FText::FromString(StatusText), GEngine->GetSmallFont(), FLinearColor::White);
-	TextItem.EnableShadow(FLinearColor::Black);
+	const FString StatusText = FString::Printf(TEXT("[%d] %s | HP %.0f | Ammo %d / %d%s"), WeaponSlot, *WeaponName.ToString(), Health, Ammo, Magazine, *ReloadText);
+	FCanvasTextItem TextItem(FVector2D(32.0f, Canvas->ClipY - 64.0f), FText::FromString(StatusText), GEngine->GetSmallFont(), FeedbackData ? FeedbackData->StatusTextColor : FLinearColor::White);
+	TextItem.EnableShadow(FeedbackData ? FeedbackData->ShadowColor : FLinearColor::Black);
 	Canvas->DrawItem(TextItem);
 
-	if (WeaponComponent && GetWorld() && GetWorld()->GetTimeSeconds() - WeaponComponent->GetLastHitConfirmTime() <= 0.18f)
+	if (WeaponComponent && GetWorld() && FeedbackData && GetWorld()->GetTimeSeconds() - WeaponComponent->GetLastHitConfirmTime() <= FeedbackData->HitMarkerDuration)
 	{
-		const float HitmarkerSize = 14.0f;
-		const float HitmarkerGap = 5.0f;
-		const FLinearColor HitmarkerColor = FLinearColor(1.0f, 0.88f, 0.2f, 1.0f);
+		const float HitmarkerSize = FeedbackData->HitMarkerLength;
+		const float HitmarkerGap = FeedbackData->HitMarkerGap;
+		const FLinearColor HitmarkerColor = FeedbackData->HitMarkerColor;
 
 		FCanvasLineItem HitTopLeft(FVector2D(Center.X - HitmarkerGap, Center.Y - HitmarkerGap), FVector2D(Center.X - HitmarkerSize, Center.Y - HitmarkerSize));
 		HitTopLeft.SetColor(HitmarkerColor);

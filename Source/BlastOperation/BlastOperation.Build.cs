@@ -8,6 +8,7 @@ public class BlastOperation : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new[]
 		{
+			"AssetRegistry",
 			"Core",
 			"CoreUObject",
 			"Engine",

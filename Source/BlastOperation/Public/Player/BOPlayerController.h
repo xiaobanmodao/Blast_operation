@@ -18,8 +18,5 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
-	TObjectPtr<UInputMappingContext> DefaultMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
-	TObjectPtr<UInputMappingContext> WeaponMappingContext;
+	TObjectPtr<UInputMappingContext> CombatMappingContext;
 };

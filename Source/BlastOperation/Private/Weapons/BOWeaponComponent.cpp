@@ -30,11 +30,19 @@ UBOWeaponComponent::UBOWeaponComponent()
 	LastFireTime = -1000.0f;
 	LastHitConfirmTime = -1000.0f;
 	LastConfirmedDamage = 0.0f;
+	CurrentWeaponSlot = 0;
 
 	static ConstructorHelpers::FObjectFinder<UBOWeaponData> RifleDataFinder(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_Rifle.DA_BO_Rifle"));
 	if (RifleDataFinder.Succeeded())
 	{
 		WeaponData = RifleDataFinder.Object;
+		WeaponSlots.Add(RifleDataFinder.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UBOWeaponData> PistolDataFinder(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_Pistol.DA_BO_Pistol"));
+	if (PistolDataFinder.Succeeded())
+	{
+		WeaponSlots.Add(PistolDataFinder.Object);
 	}
 }
 
@@ -44,7 +52,7 @@ void UBOWeaponComponent::BeginPlay()
 
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		Reload();
+		InitializeAmmoSlots();
 	}
 }
 
@@ -53,6 +61,8 @@ void UBOWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UBOWeaponComponent, AmmoInMagazine);
+	DOREPLIFETIME(UBOWeaponComponent, CurrentWeaponSlot);
+	DOREPLIFETIME(UBOWeaponComponent, AmmoBySlot);
 	DOREPLIFETIME(UBOWeaponComponent, bIsReloading);
 	DOREPLIFETIME(UBOWeaponComponent, ReloadEndTime);
 }
@@ -108,21 +118,47 @@ void UBOWeaponComponent::ServerReload_Implementation()
 	BeginReload();
 }
 
+void UBOWeaponComponent::EquipWeaponSlot(int32 SlotIndex)
+{
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+
+	if (Owner->HasAuthority())
+	{
+		HandleEquipWeaponSlot(SlotIndex);
+	}
+	else
+	{
+		ServerEquipWeaponSlot(SlotIndex);
+	}
+}
+
+void UBOWeaponComponent::ServerEquipWeaponSlot_Implementation(int32 SlotIndex)
+{
+	HandleEquipWeaponSlot(SlotIndex);
+}
+
 int32 UBOWeaponComponent::GetMagazineSize() const
 {
-	return WeaponData ? WeaponData->MagazineSize : FallbackMagazineSize;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->MagazineSize : FallbackMagazineSize;
 }
 
 float UBOWeaponComponent::GetDamage() const
 {
-	return WeaponData ? WeaponData->Damage : FallbackDamage;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->Damage : FallbackDamage;
 }
 
 FText UBOWeaponComponent::GetDisplayName() const
 {
-	if (WeaponData && !WeaponData->DisplayName.IsEmpty())
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	if (ActiveWeaponData && !ActiveWeaponData->DisplayName.IsEmpty())
 	{
-		return WeaponData->DisplayName;
+		return ActiveWeaponData->DisplayName;
 	}
 
 	return FText::FromString(TEXT("BR-01 Rifle"));
@@ -130,23 +166,27 @@ FText UBOWeaponComponent::GetDisplayName() const
 
 bool UBOWeaponComponent::IsAutomatic() const
 {
-	return WeaponData ? WeaponData->bIsAutomatic : bFallbackAutomatic;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->bIsAutomatic : bFallbackAutomatic;
 }
 
 float UBOWeaponComponent::GetSecondsBetweenShots() const
 {
-	const float FireRate = WeaponData ? WeaponData->FireRateRPM : FallbackFireRateRPM;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	const float FireRate = ActiveWeaponData ? ActiveWeaponData->FireRateRPM : FallbackFireRateRPM;
 	return 60.0f / FMath::Max(1.0f, FireRate);
 }
 
 float UBOWeaponComponent::GetRange() const
 {
-	return WeaponData ? WeaponData->Range : FallbackRange;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->Range : FallbackRange;
 }
 
 float UBOWeaponComponent::GetReloadDuration() const
 {
-	return WeaponData ? WeaponData->ReloadDuration : FallbackReloadDuration;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->ReloadDuration : FallbackReloadDuration;
 }
 
 float UBOWeaponComponent::GetReloadRemaining() const
@@ -162,12 +202,14 @@ float UBOWeaponComponent::GetReloadRemaining() const
 
 float UBOWeaponComponent::GetRecoilPitchDegrees() const
 {
-	return WeaponData ? WeaponData->RecoilPitchDegrees : FallbackRecoilPitchDegrees;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->RecoilPitchDegrees : FallbackRecoilPitchDegrees;
 }
 
 float UBOWeaponComponent::GetRecoilYawDegrees() const
 {
-	return WeaponData ? WeaponData->RecoilYawDegrees : FallbackRecoilYawDegrees;
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->RecoilYawDegrees : FallbackRecoilYawDegrees;
 }
 
 float UBOWeaponComponent::GetCurrentSpreadDegrees() const
@@ -175,9 +217,10 @@ float UBOWeaponComponent::GetCurrentSpreadDegrees() const
 	const AActor* Owner = GetOwner();
 	const bool bMoving = Owner && Owner->GetVelocity().SizeSquared2D() > FMath::Square(80.0f);
 
-	if (WeaponData)
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	if (ActiveWeaponData)
 	{
-		return bMoving ? WeaponData->MovingSpreadDegrees : WeaponData->StationarySpreadDegrees;
+		return bMoving ? ActiveWeaponData->MovingSpreadDegrees : ActiveWeaponData->StationarySpreadDegrees;
 	}
 
 	return bMoving ? FallbackMovingSpreadDegrees : FallbackStationarySpreadDegrees;
@@ -260,6 +303,7 @@ void UBOWeaponComponent::HandleFire(const FVector& TraceStart, const FVector& Ai
 
 	LastFireTime = World->GetTimeSeconds();
 	AmmoInMagazine = FMath::Max(0, AmmoInMagazine - 1);
+	StoreCurrentAmmo();
 
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(BOWeaponTrace), true, Owner);
 	if (const APawn* OwnerPawn = Cast<APawn>(Owner))
@@ -315,6 +359,18 @@ void UBOWeaponComponent::BeginReload()
 	World->GetTimerManager().SetTimer(ReloadTimerHandle, this, &UBOWeaponComponent::CompleteReload, GetReloadDuration(), false);
 }
 
+void UBOWeaponComponent::CancelReload()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(ReloadTimerHandle);
+	}
+
+	bIsReloading = false;
+	ReloadEndTime = 0.0f;
+}
+
 void UBOWeaponComponent::CompleteReload()
 {
 	AActor* Owner = GetOwner();
@@ -324,8 +380,61 @@ void UBOWeaponComponent::CompleteReload()
 	}
 
 	AmmoInMagazine = GetMagazineSize();
+	StoreCurrentAmmo();
 	bIsReloading = false;
 	ReloadEndTime = 0.0f;
+}
+
+void UBOWeaponComponent::HandleEquipWeaponSlot(int32 SlotIndex)
+{
+	AActor* Owner = GetOwner();
+	if (!Owner || !Owner->HasAuthority() || !WeaponSlots.IsValidIndex(SlotIndex) || SlotIndex == CurrentWeaponSlot)
+	{
+		return;
+	}
+
+	StoreCurrentAmmo();
+	CancelReload();
+	CurrentWeaponSlot = SlotIndex;
+
+	if (!AmmoBySlot.IsValidIndex(CurrentWeaponSlot))
+	{
+		InitializeAmmoSlots();
+	}
+
+	AmmoInMagazine = AmmoBySlot.IsValidIndex(CurrentWeaponSlot) ? AmmoBySlot[CurrentWeaponSlot] : GetMagazineSize();
+	LastFireTime = -1000.0f;
+}
+
+void UBOWeaponComponent::InitializeAmmoSlots()
+{
+	AmmoBySlot.SetNum(WeaponSlots.Num());
+	for (int32 SlotIndex = 0; SlotIndex < WeaponSlots.Num(); ++SlotIndex)
+	{
+		const UBOWeaponData* SlotWeaponData = WeaponSlots[SlotIndex];
+		AmmoBySlot[SlotIndex] = SlotWeaponData ? SlotWeaponData->MagazineSize : FallbackMagazineSize;
+	}
+
+	CurrentWeaponSlot = WeaponSlots.IsValidIndex(CurrentWeaponSlot) ? CurrentWeaponSlot : 0;
+	AmmoInMagazine = AmmoBySlot.IsValidIndex(CurrentWeaponSlot) ? AmmoBySlot[CurrentWeaponSlot] : GetMagazineSize();
+}
+
+void UBOWeaponComponent::StoreCurrentAmmo()
+{
+	if (AmmoBySlot.IsValidIndex(CurrentWeaponSlot))
+	{
+		AmmoBySlot[CurrentWeaponSlot] = AmmoInMagazine;
+	}
+}
+
+const UBOWeaponData* UBOWeaponComponent::GetActiveWeaponData() const
+{
+	if (WeaponSlots.IsValidIndex(CurrentWeaponSlot) && WeaponSlots[CurrentWeaponSlot])
+	{
+		return WeaponSlots[CurrentWeaponSlot];
+	}
+
+	return WeaponData;
 }
 
 void UBOWeaponComponent::ClientConfirmHit_Implementation(AActor* HitActor, float Damage)

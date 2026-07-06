@@ -28,28 +28,46 @@ ABOCharacter::ABOCharacter()
 	WeaponComponent = CreateDefaultSubobject<UBOWeaponComponent>(TEXT("WeaponComponent"));
 	bWantsToFire = false;
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionFinder(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_Move.IA_BO_Move"));
 	if (MoveActionFinder.Succeeded())
 	{
 		MoveAction = MoveActionFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionFinder(TEXT("/Game/Input/Actions/IA_Look.IA_Look"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_Look.IA_BO_Look"));
 	if (LookActionFinder.Succeeded())
 	{
 		LookAction = LookActionFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionFinder(TEXT("/Game/Input/Actions/IA_Jump.IA_Jump"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_Jump.IA_BO_Jump"));
 	if (JumpActionFinder.Succeeded())
 	{
 		JumpAction = JumpActionFinder.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> FireActionFinder(TEXT("/Game/Variant_Shooter/Input/Actions/IA_Shoot.IA_Shoot"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> FireActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_Fire.IA_BO_Fire"));
 	if (FireActionFinder.Succeeded())
 	{
 		FireAction = FireActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> ReloadActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_Reload.IA_BO_Reload"));
+	if (ReloadActionFinder.Succeeded())
+	{
+		ReloadAction = ReloadActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> EquipPrimaryActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_EquipPrimary.IA_BO_EquipPrimary"));
+	if (EquipPrimaryActionFinder.Succeeded())
+	{
+		EquipPrimaryAction = EquipPrimaryActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> EquipSecondaryActionFinder(TEXT("/Game/BlastOperation/Input/Actions/IA_BO_EquipSecondary.IA_BO_EquipSecondary"));
+	if (EquipSecondaryActionFinder.Succeeded())
+	{
+		EquipSecondaryAction = EquipSecondaryActionFinder.Object;
 	}
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
@@ -97,8 +115,15 @@ void ABOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInput->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOCharacter::ReloadWeapon);
 	}
 
-	// Temporary fallback until project-owned Enhanced Input assets are generated.
-	PlayerInputComponent->BindKey(EKeys::R, IE_Pressed, this, &ABOCharacter::ReloadWeapon);
+	if (EquipPrimaryAction)
+	{
+		EnhancedInput->BindAction(EquipPrimaryAction, ETriggerEvent::Started, this, &ABOCharacter::EquipPrimaryWeapon);
+	}
+
+	if (EquipSecondaryAction)
+	{
+		EnhancedInput->BindAction(EquipSecondaryAction, ETriggerEvent::Started, this, &ABOCharacter::EquipSecondaryWeapon);
+	}
 }
 
 void ABOCharacter::Move(const FInputActionValue& Value)
@@ -167,6 +192,28 @@ void ABOCharacter::ReloadWeapon()
 
 	StopFire();
 	WeaponComponent->Reload();
+}
+
+void ABOCharacter::EquipPrimaryWeapon()
+{
+	if (!WeaponComponent)
+	{
+		return;
+	}
+
+	StopFire();
+	WeaponComponent->EquipWeaponSlot(0);
+}
+
+void ABOCharacter::EquipSecondaryWeapon()
+{
+	if (!WeaponComponent)
+	{
+		return;
+	}
+
+	StopFire();
+	WeaponComponent->EquipWeaponSlot(1);
 }
 
 void ABOCharacter::ApplyLocalFireFeedback()
