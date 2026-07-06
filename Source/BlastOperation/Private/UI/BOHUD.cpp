@@ -1,6 +1,7 @@
 #include "UI/BOHUD.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/BOCombatHUDWidget.h"
 
@@ -40,9 +41,21 @@ void ABOHUD::EnsureCombatHUD()
 		return;
 	}
 
+	TArray<UUserWidget*> ExistingWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(PlayerController, ExistingWidgets, CombatHUDWidgetClass, false);
+	for (UUserWidget* ExistingWidget : ExistingWidgets)
+	{
+		UBOCombatHUDWidget* ExistingCombatHUD = Cast<UBOCombatHUDWidget>(ExistingWidget);
+		if (ExistingCombatHUD && ExistingCombatHUD->GetOwningPlayer() == PlayerController)
+		{
+			CombatHUDWidget = ExistingCombatHUD;
+			return;
+		}
+	}
+
 	CombatHUDWidget = CreateWidget<UBOCombatHUDWidget>(PlayerController, CombatHUDWidgetClass);
 	if (CombatHUDWidget)
 	{
-		CombatHUDWidget->AddToViewport(0);
+		CombatHUDWidget->AddToViewport(20);
 	}
 }

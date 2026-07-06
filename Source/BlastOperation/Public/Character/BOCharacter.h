@@ -41,6 +41,7 @@ protected:
 	void EquipPrimaryWeapon();
 	void EquipSecondaryWeapon();
 	void ApplyLocalFireFeedback();
+	void EnsureWeaponViewMeshes();
 	void UpdateWeaponViewModel();
 	void ConfigureWeaponViewMesh(UStaticMeshComponent* MeshComponent, const FVector& RelativeLocation, const FRotator& RelativeRotation, const FVector& RelativeScale) const;
 

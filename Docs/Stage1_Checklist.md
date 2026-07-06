@@ -36,6 +36,8 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Added Blueprint extension events to `UBOCombatHUDWidget` so a `WBP` layout can inherit the native data path.
 - Updated `BO_TestRange` generation to apply Concrete and Metal physical materials to generated range geometry.
 - Added a visible first-person weapon view model, editor-visible training target setup, map-level `BOGameModeBase` override, and `VerifyStage1TestRange.py`.
+- Fixed first-person mouse pitch direction and added PlayerController-owned combat HUD fallback creation.
+- Hardened the prototype weapon view model so it force-loads its mesh, stays visible in game, and sits closer to the first-person camera center.
 
 ## Current Verification
 

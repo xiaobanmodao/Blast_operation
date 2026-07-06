@@ -33,6 +33,8 @@ ABOCharacter::ABOCharacter()
 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		MeshComponent->SetCastShadow(false);
 		MeshComponent->SetReceivesDecals(false);
+		MeshComponent->SetHiddenInGame(false);
+		MeshComponent->SetRenderInMainPass(true);
 		return MeshComponent;
 	};
 
@@ -107,6 +109,7 @@ void ABOCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	EnsureWeaponViewMeshes();
 	UpdateWeaponViewModel();
 }
 
@@ -180,7 +183,7 @@ void ABOCharacter::Look(const FInputActionValue& Value)
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
+	AddControllerPitchInput(-LookAxisVector.Y);
 }
 
 void ABOCharacter::StartFire()
@@ -273,20 +276,49 @@ void ABOCharacter::ApplyLocalFireFeedback()
 
 void ABOCharacter::UpdateWeaponViewModel()
 {
+	EnsureWeaponViewMeshes();
+
 	const int32 WeaponSlot = WeaponComponent ? WeaponComponent->GetCurrentWeaponSlot() : 0;
 	if (WeaponSlot == 1)
 	{
-		ConfigureWeaponViewMesh(WeaponBodyMesh, FVector(34.0f, 16.0f, -18.0f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.28f, 0.075f, 0.065f));
-		ConfigureWeaponViewMesh(WeaponBarrelMesh, FVector(57.0f, 16.0f, -17.5f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.20f, 0.032f, 0.032f));
-		ConfigureWeaponViewMesh(WeaponGripMesh, FVector(27.0f, 16.0f, -27.0f), FRotator(0.0f, 0.0f, -12.0f), FVector(0.07f, 0.055f, 0.14f));
-		ConfigureWeaponViewMesh(WeaponSightMesh, FVector(38.0f, 16.0f, -11.5f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.10f, 0.026f, 0.025f));
+		ConfigureWeaponViewMesh(WeaponBodyMesh, FVector(42.0f, 9.0f, -14.0f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.34f, 0.11f, 0.09f));
+		ConfigureWeaponViewMesh(WeaponBarrelMesh, FVector(70.0f, 9.0f, -13.2f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.26f, 0.04f, 0.04f));
+		ConfigureWeaponViewMesh(WeaponGripMesh, FVector(34.0f, 9.0f, -27.0f), FRotator(0.0f, 0.0f, -12.0f), FVector(0.09f, 0.07f, 0.17f));
+		ConfigureWeaponViewMesh(WeaponSightMesh, FVector(47.0f, 9.0f, -6.0f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.13f, 0.04f, 0.035f));
 		return;
 	}
 
-	ConfigureWeaponViewMesh(WeaponBodyMesh, FVector(42.0f, 17.0f, -18.5f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.42f, 0.075f, 0.068f));
-	ConfigureWeaponViewMesh(WeaponBarrelMesh, FVector(78.0f, 17.0f, -17.8f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.32f, 0.028f, 0.028f));
-	ConfigureWeaponViewMesh(WeaponGripMesh, FVector(34.0f, 17.0f, -28.5f), FRotator(0.0f, 0.0f, -10.0f), FVector(0.085f, 0.055f, 0.16f));
-	ConfigureWeaponViewMesh(WeaponSightMesh, FVector(46.0f, 17.0f, -11.5f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.16f, 0.026f, 0.024f));
+	ConfigureWeaponViewMesh(WeaponBodyMesh, FVector(52.0f, 10.0f, -14.5f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.52f, 0.12f, 0.10f));
+	ConfigureWeaponViewMesh(WeaponBarrelMesh, FVector(98.0f, 10.0f, -13.6f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.44f, 0.045f, 0.045f));
+	ConfigureWeaponViewMesh(WeaponGripMesh, FVector(41.0f, 10.0f, -29.0f), FRotator(0.0f, 0.0f, -10.0f), FVector(0.11f, 0.075f, 0.19f));
+	ConfigureWeaponViewMesh(WeaponSightMesh, FVector(60.0f, 10.0f, -5.8f), FRotator(0.0f, 0.0f, 0.0f), FVector(0.20f, 0.045f, 0.035f));
+}
+
+void ABOCharacter::EnsureWeaponViewMeshes()
+{
+	UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+	UStaticMeshComponent* WeaponMeshes[] = { WeaponBodyMesh, WeaponBarrelMesh, WeaponGripMesh, WeaponSightMesh };
+	for (UStaticMeshComponent* MeshComponent : WeaponMeshes)
+	{
+		if (!MeshComponent)
+		{
+			continue;
+		}
+
+		if (!MeshComponent->GetStaticMesh() && CubeMesh)
+		{
+			MeshComponent->SetStaticMesh(CubeMesh);
+		}
+
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		MeshComponent->SetGenerateOverlapEvents(false);
+		MeshComponent->SetCastShadow(false);
+		MeshComponent->SetReceivesDecals(false);
+		MeshComponent->SetRenderInMainPass(true);
+		MeshComponent->SetHiddenInGame(false);
+		MeshComponent->SetVisibility(true, true);
+		MeshComponent->MarkRenderStateDirty();
+	}
 }
 
 void ABOCharacter::ConfigureWeaponViewMesh(UStaticMeshComponent* MeshComponent, const FVector& RelativeLocation, const FRotator& RelativeRotation, const FVector& RelativeScale) const
@@ -299,5 +331,7 @@ void ABOCharacter::ConfigureWeaponViewMesh(UStaticMeshComponent* MeshComponent, 
 	MeshComponent->SetRelativeLocation(RelativeLocation);
 	MeshComponent->SetRelativeRotation(RelativeRotation);
 	MeshComponent->SetRelativeScale3D(RelativeScale);
+	MeshComponent->SetHiddenInGame(false);
 	MeshComponent->SetVisibility(true, true);
+	MeshComponent->MarkRenderStateDirty();
 }
