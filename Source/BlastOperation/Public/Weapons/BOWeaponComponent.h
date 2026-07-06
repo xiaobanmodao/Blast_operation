@@ -2,9 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "TimerManager.h"
 #include "BOWeaponComponent.generated.h"
 
 class UBOWeaponData;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBOHitConfirmedSignature, AActor*, HitActor, float, Damage);
 
 UCLASS(ClassGroup = (BlastOperation), Blueprintable, meta = (BlueprintSpawnableComponent))
 class BLASTOPERATION_API UBOWeaponComponent : public UActorComponent
@@ -20,7 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Blast Operation|Weapon")
 	void Fire(const FVector& TraceStart, const FVector& AimDirection);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Blast Operation|Weapon")
+	UFUNCTION(BlueprintCallable, Category = "Blast Operation|Weapon")
 	void Reload();
 
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
@@ -32,14 +35,55 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	float GetDamage() const;
 
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	FText GetDisplayName() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	bool IsAutomatic() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	bool IsReloading() const { return bIsReloading; }
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetReloadRemaining() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetSecondsBetweenShots() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetRecoilPitchDegrees() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetRecoilYawDegrees() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetLastHitConfirmTime() const { return LastHitConfirmTime; }
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetLastConfirmedDamage() const { return LastConfirmedDamage; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Blast Operation|Weapon")
+	FBOHitConfirmedSignature OnHitConfirmed;
+
 protected:
 	UFUNCTION(Server, Reliable)
 	void ServerFire(FVector_NetQuantize TraceStart, FVector_NetQuantizeNormal AimDirection);
 
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+
+	UFUNCTION(Client, Unreliable)
+	void ClientConfirmHit(AActor* HitActor, float Damage);
+
 	void HandleFire(const FVector& TraceStart, const FVector& AimDirection);
+	void BeginReload();
+	void CompleteReload();
 	bool CanFire() const;
-	float GetSecondsBetweenShots() const;
 	float GetRange() const;
+	float GetReloadDuration() const;
+	float GetCurrentSpreadDegrees() const;
+	FVector ApplyServerSpread(const FVector& AimDirection) const;
+	void GetSanitizedTrace(const FVector& TraceStart, const FVector& AimDirection, FVector& OutTraceStart, FVector& OutAimDirection) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
 	TObjectPtr<UBOWeaponData> WeaponData;
@@ -50,15 +94,41 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "1.0"))
 	float FallbackFireRateRPM;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	bool bFallbackAutomatic;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
 	float FallbackDamage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "100.0"))
 	float FallbackRange;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackReloadDuration;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackStationarySpreadDegrees;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackMovingSpreadDegrees;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackRecoilPitchDegrees;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackRecoilYawDegrees;
+
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
 	int32 AmmoInMagazine;
 
-	float LastFireTime;
-};
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	bool bIsReloading;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	float ReloadEndTime;
+
+	float LastFireTime;
+	float LastHitConfirmTime;
+	float LastConfirmedDamage;
+	FTimerHandle ReloadTimerHandle;
+};

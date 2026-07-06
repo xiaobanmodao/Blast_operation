@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "TimerManager.h"
 #include "BOCharacter.generated.h"
 
 class UBOHealthComponent;
@@ -32,6 +33,10 @@ protected:
 	void Move(const struct FInputActionValue& Value);
 	void Look(const struct FInputActionValue& Value);
 	void StartFire();
+	void StopFire();
+	void FireOnce();
+	void ReloadWeapon();
+	void ApplyLocalFireFeedback();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FirstPersonCamera;
@@ -53,4 +58,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
 	TObjectPtr<UInputAction> FireAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
+	TObjectPtr<UInputAction> ReloadAction;
+
+	FTimerHandle FireTimerHandle;
+	bool bWantsToFire;
 };

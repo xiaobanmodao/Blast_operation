@@ -8,6 +8,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputAction.h"
 #include "InputActionValue.h"
+#include "InputCoreTypes.h"
+#include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Weapons/BOWeaponComponent.h"
 
@@ -24,6 +26,7 @@ ABOCharacter::ABOCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UBOHealthComponent>(TEXT("HealthComponent"));
 	WeaponComponent = CreateDefaultSubobject<UBOWeaponComponent>(TEXT("WeaponComponent"));
+	bWantsToFire = false;
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionFinder(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
 	if (MoveActionFinder.Succeeded())
@@ -85,7 +88,17 @@ void ABOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	if (FireAction)
 	{
 		EnhancedInput->BindAction(FireAction, ETriggerEvent::Started, this, &ABOCharacter::StartFire);
+		EnhancedInput->BindAction(FireAction, ETriggerEvent::Completed, this, &ABOCharacter::StopFire);
+		EnhancedInput->BindAction(FireAction, ETriggerEvent::Canceled, this, &ABOCharacter::StopFire);
 	}
+
+	if (ReloadAction)
+	{
+		EnhancedInput->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOCharacter::ReloadWeapon);
+	}
+
+	// Temporary fallback until project-owned Enhanced Input assets are generated.
+	PlayerInputComponent->BindKey(EKeys::R, IE_Pressed, this, &ABOCharacter::ReloadWeapon);
 }
 
 void ABOCharacter::Move(const FInputActionValue& Value)
@@ -119,5 +132,50 @@ void ABOCharacter::StartFire()
 		return;
 	}
 
+	bWantsToFire = true;
+	FireOnce();
+
+	if (WeaponComponent->IsAutomatic())
+	{
+		GetWorldTimerManager().SetTimer(FireTimerHandle, this, &ABOCharacter::FireOnce, WeaponComponent->GetSecondsBetweenShots(), true);
+	}
+}
+
+void ABOCharacter::StopFire()
+{
+	bWantsToFire = false;
+	GetWorldTimerManager().ClearTimer(FireTimerHandle);
+}
+
+void ABOCharacter::FireOnce()
+{
+	if (!bWantsToFire || !WeaponComponent || !FirstPersonCamera || WeaponComponent->IsReloading())
+	{
+		return;
+	}
+
 	WeaponComponent->Fire(FirstPersonCamera->GetComponentLocation(), FirstPersonCamera->GetForwardVector());
+	ApplyLocalFireFeedback();
+}
+
+void ABOCharacter::ReloadWeapon()
+{
+	if (!WeaponComponent)
+	{
+		return;
+	}
+
+	StopFire();
+	WeaponComponent->Reload();
+}
+
+void ABOCharacter::ApplyLocalFireFeedback()
+{
+	if (!IsLocallyControlled() || !Controller || !WeaponComponent)
+	{
+		return;
+	}
+
+	AddControllerPitchInput(-WeaponComponent->GetRecoilPitchDegrees());
+	AddControllerYawInput(FMath::FRandRange(-WeaponComponent->GetRecoilYawDegrees(), WeaponComponent->GetRecoilYawDegrees()));
 }

@@ -18,17 +18,20 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Added `ABOHUD` with a simple crosshair and HP/ammo readout.
 - Added `Tools/Editor/PopulateStage1TestRange.py` for repeatable test range setup.
 - Populated `BO_TestRange` with a PlayerStart, floor, side walls, backstop, lights, and three starter targets.
+- Added Rifle and Pistol weapon data assets under `/Game/BlastOperation/Weapons/Data`.
+- Added held automatic fire, timed reload, server hit confirmation, basic spread, and local recoil feedback.
+- Added project-owned `IA_Reload` by duplicating the template shoot Input Action, while reload still uses a native `R` key fallback until a project-owned Mapping Context is added.
 
 ## Current Verification
 
 - `BlastOperationEditor Mac Development` build succeeds.
 - `PopulateStage1TestRange.py` commandlet succeeds with 0 errors and 0 warnings.
+- `CreateStage1WeaponAssets.py` commandlet succeeds with 0 errors and 0 warnings.
 
 ## Next
 
-- Create Rifle and Pistol `UBOWeaponData` assets.
-- Add reload input and client-facing reload feedback.
-- Add automatic fire hold behavior instead of one-shot trigger only.
-- Add hit feedback for target and player damage.
-- Start recoil, spread, and movement accuracy tuning.
+- Add project-owned Enhanced Input Mapping Context entries for reload and weapon swapping.
+- Add weapon switching between Rifle and Pistol.
+- Add richer hit feedback for target and player damage.
+- Continue recoil, spread, and movement accuracy tuning.
 - Replace the debug Canvas HUD with a first UMG combat HUD when the gameplay values stabilize.
