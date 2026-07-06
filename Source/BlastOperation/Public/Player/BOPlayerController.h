@@ -4,6 +4,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BOPlayerController.generated.h"
 
+class UInputMappingContext;
+
 UCLASS(Blueprintable)
 class BLASTOPERATION_API ABOPlayerController : public APlayerController
 {
@@ -11,5 +13,13 @@ class BLASTOPERATION_API ABOPlayerController : public APlayerController
 
 public:
 	ABOPlayerController();
-};
 
+	virtual void BeginPlay() override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
+	TObjectPtr<UInputMappingContext> WeaponMappingContext;
+};
