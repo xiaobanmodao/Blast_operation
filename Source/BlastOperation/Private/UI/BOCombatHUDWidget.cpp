@@ -134,6 +134,8 @@ void UBOCombatHUDWidget::UpdateCombatReadout()
 		StatusText->SetColorAndOpacity(FSlateColor(FeedbackData ? FeedbackData->StatusTextColor : FLinearColor::White));
 		StatusText->SetShadowColorAndOpacity(FeedbackData ? FeedbackData->ShadowColor : FLinearColor::Black);
 	}
+
+	OnCombatReadoutUpdated(FText::FromString(Status), Health, Ammo, Magazine, WeaponSlot);
 }
 
 void UBOCombatHUDWidget::UpdateCrosshair(const UBOCombatFeedbackData* FeedbackData)
@@ -161,6 +163,8 @@ void UBOCombatHUDWidget::UpdateCrosshair(const UBOCombatFeedbackData* FeedbackDa
 
 	SetBoxBrush(CrosshairBottom, Color, FVector2D(Thickness, LineLength));
 	SetCanvasSlot(CrosshairBottom, FVector2D(-Thickness * 0.5f, Gap), FVector2D(Thickness, LineLength), FVector2D(0.5f, 0.5f), FVector2D::ZeroVector);
+
+	OnCrosshairUpdated(SpreadDegrees, Gap);
 }
 
 void UBOCombatHUDWidget::UpdateHitFeedback(const UBOCombatFeedbackData* FeedbackData)
@@ -179,8 +183,11 @@ void UBOCombatHUDWidget::UpdateHitFeedback(const UBOCombatFeedbackData* Feedback
 
 	const float HitAge = World->GetTimeSeconds() - WeaponComponent->GetLastHitConfirmTime();
 	const bool bFatalHit = WeaponComponent->WasLastHitFatal();
+	const float Damage = WeaponComponent->GetLastConfirmedDamage();
 	const FLinearColor HitColor = bFatalHit ? FeedbackData->FatalHitMarkerColor : FeedbackData->HitMarkerColor;
 	const bool bShowHitMarker = HitAge <= FeedbackData->HitMarkerDuration;
+	const float HitFeedbackDuration = FMath::Max(FeedbackData->DamageNumberDuration, FeedbackData->HitMarkerDuration);
+	const float NormalizedAge = FMath::Clamp(HitAge / FMath::Max(0.01f, HitFeedbackDuration), 0.0f, 1.0f);
 
 	UImage* HitLines[] = { HitTopLeft, HitTopRight, HitBottomLeft, HitBottomRight };
 	for (UImage* HitLine : HitLines)
@@ -215,15 +222,17 @@ void UBOCombatHUDWidget::UpdateHitFeedback(const UBOCombatFeedbackData* Feedback
 		HitBottomRight->SetRenderTransformAngle(45.0f);
 	}
 
-	const bool bShowDamage = HitAge <= FeedbackData->DamageNumberDuration && WeaponComponent->GetLastConfirmedDamage() > 0.0f;
+	const bool bShowDamage = HitAge <= FeedbackData->DamageNumberDuration && Damage > 0.0f;
 	if (!DamageText)
 	{
+		OnHitFeedbackUpdated(Damage, bFatalHit, NormalizedAge);
 		return;
 	}
 
 	DamageText->SetVisibility(bShowDamage ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 	if (!bShowDamage)
 	{
+		OnHitFeedbackUpdated(Damage, bFatalHit, NormalizedAge);
 		return;
 	}
 
@@ -232,13 +241,14 @@ void UBOCombatHUDWidget::UpdateHitFeedback(const UBOCombatFeedbackData* Feedback
 	DamageColor.A *= 1.0f - Progress;
 
 	const FString DamageString = bFatalHit
-		? FString::Printf(TEXT("ELIM +%.0f"), WeaponComponent->GetLastConfirmedDamage())
-		: FString::Printf(TEXT("+%.0f"), WeaponComponent->GetLastConfirmedDamage());
+		? FString::Printf(TEXT("ELIM +%.0f"), Damage)
+		: FString::Printf(TEXT("+%.0f"), Damage);
 	DamageText->SetText(FText::FromString(DamageString));
 	DamageText->SetColorAndOpacity(FSlateColor(DamageColor));
 	DamageText->SetRenderOpacity(DamageColor.A);
 	DamageText->SetRenderScale(FVector2D(bFatalHit ? 1.2f : 1.0f, bFatalHit ? 1.2f : 1.0f));
 	SetCanvasSlot(DamageText, FVector2D(95.0f, -78.0f - FeedbackData->DamageNumberRise * Progress), FVector2D(240.0f, 48.0f), FVector2D(0.5f, 0.5f), FVector2D(0.5f, 0.5f));
+	OnHitFeedbackUpdated(Damage, bFatalHit, NormalizedAge);
 }
 
 void UBOCombatHUDWidget::SetBoxBrush(UImage* Image, const FLinearColor& Color, const FVector2D& Size) const

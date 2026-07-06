@@ -31,6 +31,10 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Expanded weapon accuracy tuning with stationary, moving, airborne, consecutive-shot, and recovery spread parameters.
 - Added dynamic four-segment crosshair expansion driven by current weapon spread.
 - Replaced the debug Canvas HUD drawing path with a native UMG widget mounted by `ABOHUD`.
+- Added weapon-specific recoil pattern authoring for Rifle and Pistol, with pattern reset and fallback recoil.
+- Added per-surface impact feedback data, physical material assets, and multicast impact markers.
+- Added Blueprint extension events to `UBOCombatHUDWidget` so a `WBP` layout can inherit the native data path.
+- Updated `BO_TestRange` generation to apply Concrete and Metal physical materials to generated range geometry.
 
 ## Current Verification
 
@@ -40,6 +44,6 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 
 ## Next
 
-- Add per-surface impact audio/visual feedback once weapon and target materials are locked.
-- Add weapon-specific recoil pattern authoring once rifle and pistol baseline values feel right in playtests.
-- Promote the native UMG HUD to Blueprint-authored layout once final visual language is established.
+- Replace prototype debug impact markers with final Niagara and authored sound assets.
+- Promote the native UMG HUD to a Blueprint-authored visual layout once final visual language is established.
+- Run a focused Stage 1 playtest pass and tune Rifle/Pistol recoil pattern values from feel.

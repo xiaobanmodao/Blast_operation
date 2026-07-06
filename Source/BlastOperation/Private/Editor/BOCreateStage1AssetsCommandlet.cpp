@@ -6,9 +6,11 @@
 #include "InputMappingContext.h"
 #include "InputModifiers.h"
 #include "Misc/PackageName.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "UI/BOCombatFeedbackData.h"
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
+#include "Weapons/BOImpactFeedbackData.h"
 #include "Weapons/BOWeaponData.h"
 
 namespace
@@ -73,6 +75,14 @@ void ConfigureAction(UInputAction* Action, EInputActionValueType ValueType)
 FEnhancedActionKeyMapping& MapKey(UInputMappingContext* Context, UInputAction* Action, const FKey& Key)
 {
 	return Context->MapKey(Action, Key);
+}
+
+FBORecoilPatternStep MakeRecoilStep(float PitchDegrees, float YawDegrees)
+{
+	FBORecoilPatternStep Step;
+	Step.PitchDegrees = PitchDegrees;
+	Step.YawDegrees = YawDegrees;
+	return Step;
 }
 
 void ConfigureStage1InputAssets()
@@ -170,6 +180,22 @@ void ConfigureStage1WeaponAssets()
 	Rifle->MovementAccuracySpeedThreshold = 120.0f;
 	Rifle->RecoilPitchDegrees = 0.36f;
 	Rifle->RecoilYawDegrees = 0.14f;
+	Rifle->RecoilPatternScale = 1.0f;
+	Rifle->RecoilPatternResetDelay = 0.24f;
+	Rifle->RecoilPattern = {
+		MakeRecoilStep(0.34f, 0.00f),
+		MakeRecoilStep(0.38f, 0.04f),
+		MakeRecoilStep(0.42f, 0.08f),
+		MakeRecoilStep(0.45f, 0.10f),
+		MakeRecoilStep(0.48f, 0.06f),
+		MakeRecoilStep(0.50f, -0.02f),
+		MakeRecoilStep(0.52f, -0.08f),
+		MakeRecoilStep(0.50f, -0.12f),
+		MakeRecoilStep(0.47f, -0.09f),
+		MakeRecoilStep(0.44f, -0.03f),
+		MakeRecoilStep(0.42f, 0.05f),
+		MakeRecoilStep(0.40f, 0.10f)
+	};
 	SaveAsset(Rifle);
 
 	UBOWeaponData* Pistol = LoadOrCreateAsset<UBOWeaponData>(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_Pistol"), TEXT("DA_BO_Pistol"));
@@ -191,7 +217,74 @@ void ConfigureStage1WeaponAssets()
 	Pistol->MovementAccuracySpeedThreshold = 120.0f;
 	Pistol->RecoilPitchDegrees = 0.48f;
 	Pistol->RecoilYawDegrees = 0.2f;
+	Pistol->RecoilPatternScale = 1.0f;
+	Pistol->RecoilPatternResetDelay = 0.32f;
+	Pistol->RecoilPattern = {
+		MakeRecoilStep(0.42f, 0.00f),
+		MakeRecoilStep(0.46f, -0.05f),
+		MakeRecoilStep(0.50f, 0.07f),
+		MakeRecoilStep(0.52f, 0.02f),
+		MakeRecoilStep(0.50f, -0.08f),
+		MakeRecoilStep(0.48f, 0.06f)
+	};
 	SaveAsset(Pistol);
+}
+
+void ConfigureStage1ImpactFeedbackAssets()
+{
+	UPhysicalMaterial* ConcretePhysicalMaterial = LoadOrCreateAsset<UPhysicalMaterial>(TEXT("/Game/BlastOperation/Materials/Physics/PM_BO_Concrete"), TEXT("PM_BO_Concrete"));
+	ConcretePhysicalMaterial->SurfaceType = SurfaceType1;
+	SaveAsset(ConcretePhysicalMaterial);
+
+	UPhysicalMaterial* MetalPhysicalMaterial = LoadOrCreateAsset<UPhysicalMaterial>(TEXT("/Game/BlastOperation/Materials/Physics/PM_BO_Metal"), TEXT("PM_BO_Metal"));
+	MetalPhysicalMaterial->SurfaceType = SurfaceType2;
+	SaveAsset(MetalPhysicalMaterial);
+
+	UPhysicalMaterial* TargetPhysicalMaterial = LoadOrCreateAsset<UPhysicalMaterial>(TEXT("/Game/BlastOperation/Materials/Physics/PM_BO_TrainingTarget"), TEXT("PM_BO_TrainingTarget"));
+	TargetPhysicalMaterial->SurfaceType = SurfaceType3;
+	SaveAsset(TargetPhysicalMaterial);
+
+	UBOImpactFeedbackData* ImpactFeedback = LoadOrCreateAsset<UBOImpactFeedbackData>(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_ImpactFeedback"), TEXT("DA_BO_ImpactFeedback"));
+	ImpactFeedback->DefaultFeedback.MarkerColor = FLinearColor(0.9f, 0.96f, 1.0f, 1.0f);
+	ImpactFeedback->DefaultFeedback.MarkerRadius = 10.0f;
+	ImpactFeedback->DefaultFeedback.MarkerDuration = 0.16f;
+	ImpactFeedback->DefaultFeedback.MarkerThickness = 1.2f;
+	ImpactFeedback->DefaultFeedback.SoundVolume = 0.42f;
+	ImpactFeedback->DefaultFeedback.SoundPitch = 1.0f;
+
+	FBOImpactSurfaceFeedback ConcreteFeedback;
+	ConcreteFeedback.SurfaceType = SurfaceType1;
+	ConcreteFeedback.Feedback.MarkerColor = FLinearColor(0.72f, 0.78f, 0.8f, 1.0f);
+	ConcreteFeedback.Feedback.MarkerRadius = 12.0f;
+	ConcreteFeedback.Feedback.MarkerDuration = 0.18f;
+	ConcreteFeedback.Feedback.MarkerThickness = 1.25f;
+	ConcreteFeedback.Feedback.SoundVolume = 0.5f;
+	ConcreteFeedback.Feedback.SoundPitch = 0.92f;
+
+	FBOImpactSurfaceFeedback MetalFeedback;
+	MetalFeedback.SurfaceType = SurfaceType2;
+	MetalFeedback.Feedback.MarkerColor = FLinearColor(0.72f, 0.88f, 1.0f, 1.0f);
+	MetalFeedback.Feedback.MarkerRadius = 9.0f;
+	MetalFeedback.Feedback.MarkerDuration = 0.14f;
+	MetalFeedback.Feedback.MarkerThickness = 1.4f;
+	MetalFeedback.Feedback.SoundVolume = 0.55f;
+	MetalFeedback.Feedback.SoundPitch = 1.12f;
+
+	FBOImpactSurfaceFeedback TargetFeedback;
+	TargetFeedback.SurfaceType = SurfaceType3;
+	TargetFeedback.Feedback.MarkerColor = FLinearColor(1.0f, 0.74f, 0.16f, 1.0f);
+	TargetFeedback.Feedback.MarkerRadius = 14.0f;
+	TargetFeedback.Feedback.MarkerDuration = 0.2f;
+	TargetFeedback.Feedback.MarkerThickness = 1.6f;
+	TargetFeedback.Feedback.SoundVolume = 0.48f;
+	TargetFeedback.Feedback.SoundPitch = 1.04f;
+
+	ImpactFeedback->SurfaceFeedback = {
+		ConcreteFeedback,
+		MetalFeedback,
+		TargetFeedback
+	};
+	SaveAsset(ImpactFeedback);
 }
 
 void ConfigureStage1FeedbackAssets()
@@ -232,6 +325,7 @@ int32 UBOCreateStage1AssetsCommandlet::Main(const FString& Params)
 
 	ConfigureStage1InputAssets();
 	ConfigureStage1WeaponAssets();
+	ConfigureStage1ImpactFeedbackAssets();
 	ConfigureStage1FeedbackAssets();
 
 	UE_LOG(LogTemp, Display, TEXT("Blast Operation Stage 1 assets created."));

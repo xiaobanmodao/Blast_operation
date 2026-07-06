@@ -5,6 +5,18 @@
 #include "GameplayTagContainer.h"
 #include "BOWeaponData.generated.h"
 
+USTRUCT(BlueprintType)
+struct FBORecoilPatternStep
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float PitchDegrees = 0.45f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	float YawDegrees = 0.0f;
+};
+
 UCLASS(BlueprintType)
 class BLASTOPERATION_API UBOWeaponData : public UDataAsset
 {
@@ -64,4 +76,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
 	float RecoilYawDegrees = 0.18f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
+	TArray<FBORecoilPatternStep> RecoilPattern;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float RecoilPatternScale = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float RecoilPatternResetDelay = 0.22f;
 };

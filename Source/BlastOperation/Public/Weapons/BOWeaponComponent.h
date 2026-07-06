@@ -65,6 +65,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	float GetRecoilYawDegrees() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Blast Operation|Weapon")
+	FVector2D ConsumeRecoilOffsetDegrees();
+
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	float GetCurrentSpreadDegrees() const;
 
@@ -102,6 +105,9 @@ protected:
 	UFUNCTION(Client, Unreliable)
 	void ClientConfirmHit(AActor* HitActor, float Damage, float RemainingHealth, bool bFatalHit);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastImpactFeedback(FVector_NetQuantize ImpactLocation, FVector_NetQuantizeNormal ImpactNormal, uint8 SurfaceType);
+
 	void HandleFire(const FVector& TraceStart, const FVector& AimDirection);
 	void HandleEquipWeaponSlot(int32 SlotIndex);
 	void BeginReload();
@@ -121,11 +127,15 @@ protected:
 	float GetMaxShotSpreadDegrees() const;
 	float GetSpreadRecoveryDegreesPerSecond() const;
 	float GetMovementAccuracySpeedThreshold() const;
+	float GetRecoilPatternScale() const;
+	float GetRecoilPatternResetDelay() const;
 	void UpdateShotSpreadRecovery() const;
 	void AddShotSpreadPenalty();
 	void ResetShotSpread();
+	void ResetRecoilPattern();
 	FVector ApplyServerSpread(const FVector& AimDirection) const;
 	void GetSanitizedTrace(const FVector& TraceStart, const FVector& AimDirection, FVector& OutTraceStart, FVector& OutAimDirection) const;
+	void PlayImpactFeedback(const FVector& ImpactLocation, const FVector& ImpactNormal, uint8 SurfaceType) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon")
 	TObjectPtr<UBOWeaponData> WeaponData;
@@ -200,5 +210,7 @@ protected:
 	bool bLastHitWasFatal;
 	mutable float CurrentShotSpreadDegrees;
 	mutable float LastSpreadUpdateTime;
+	int32 RecoilPatternIndex;
+	float LastRecoilTime;
 	FTimerHandle ReloadTimerHandle;
 };

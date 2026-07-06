@@ -16,6 +16,7 @@ public class BlastOperation : ModuleRules
 			"GameplayTags",
 			"InputCore",
 			"NetCore",
+			"PhysicsCore",
 			"UMG"
 		});
 

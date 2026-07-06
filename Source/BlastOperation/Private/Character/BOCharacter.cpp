@@ -231,6 +231,7 @@ void ABOCharacter::ApplyLocalFireFeedback()
 	}
 
 	WeaponComponent->RecordLocalShotFeedback();
-	AddControllerPitchInput(-WeaponComponent->GetRecoilPitchDegrees());
-	AddControllerYawInput(FMath::FRandRange(-WeaponComponent->GetRecoilYawDegrees(), WeaponComponent->GetRecoilYawDegrees()));
+	const FVector2D RecoilOffset = WeaponComponent->ConsumeRecoilOffsetDegrees();
+	AddControllerPitchInput(-RecoilOffset.X);
+	AddControllerYawInput(RecoilOffset.Y);
 }

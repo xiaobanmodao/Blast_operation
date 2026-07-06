@@ -20,6 +20,15 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 protected:
+	UFUNCTION(BlueprintImplementableEvent, Category = "Blast Operation|HUD")
+	void OnCombatReadoutUpdated(const FText& Status, float Health, int32 Ammo, int32 MagazineSize, int32 WeaponSlot);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Blast Operation|HUD")
+	void OnCrosshairUpdated(float CurrentSpreadDegrees, float CrosshairGap);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Blast Operation|HUD")
+	void OnHitFeedbackUpdated(float Damage, bool bFatalHit, float NormalizedAge);
+
 	void BuildWidgetTree();
 	void UpdateCombatReadout();
 	void UpdateCrosshair(const UBOCombatFeedbackData* FeedbackData);
@@ -27,36 +36,36 @@ protected:
 	void SetBoxBrush(UImage* Image, const FLinearColor& Color, const FVector2D& Size) const;
 	void SetCanvasSlot(UWidget* Widget, const FVector2D& Position, const FVector2D& Size, const FVector2D& Anchor, const FVector2D& Alignment) const;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UCanvasPanel> RootPanel;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UTextBlock> StatusText;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UTextBlock> DamageText;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> CrosshairLeft;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> CrosshairRight;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> CrosshairTop;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> CrosshairBottom;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> HitTopLeft;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> HitTopRight;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> HitBottomLeft;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Blast Operation|HUD")
 	TObjectPtr<UImage> HitBottomRight;
 };

@@ -2,6 +2,7 @@
 
 #include "Components/BOHealthComponent.h"
 #include "Core/BOLogChannels.h"
+#include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -9,9 +10,21 @@
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "Sound/SoundBase.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Weapons/BOImpactFeedbackData.h"
 #include "Weapons/BOWeaponData.h"
+
+namespace
+{
+const UBOImpactFeedbackData* LoadImpactFeedbackData()
+{
+	static const UBOImpactFeedbackData* ImpactFeedbackData = LoadObject<UBOImpactFeedbackData>(nullptr, TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_ImpactFeedback.DA_BO_ImpactFeedback"));
+	return ImpactFeedbackData ? ImpactFeedbackData : GetDefault<UBOImpactFeedbackData>();
+}
+}
 
 UBOWeaponComponent::UBOWeaponComponent()
 {
@@ -43,6 +56,8 @@ UBOWeaponComponent::UBOWeaponComponent()
 	CurrentWeaponSlot = 0;
 	CurrentShotSpreadDegrees = 0.0f;
 	LastSpreadUpdateTime = -1000.0f;
+	RecoilPatternIndex = 0;
+	LastRecoilTime = -1000.0f;
 
 	static ConstructorHelpers::FObjectFinder<UBOWeaponData> RifleDataFinder(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_Rifle.DA_BO_Rifle"));
 	if (RifleDataFinder.Succeeded())
@@ -224,6 +239,28 @@ float UBOWeaponComponent::GetRecoilYawDegrees() const
 	return ActiveWeaponData ? ActiveWeaponData->RecoilYawDegrees : FallbackRecoilYawDegrees;
 }
 
+FVector2D UBOWeaponComponent::ConsumeRecoilOffsetDegrees()
+{
+	const UWorld* World = GetWorld();
+	const float CurrentTime = World ? World->GetTimeSeconds() : 0.0f;
+	if (LastRecoilTime >= 0.0f && CurrentTime - LastRecoilTime > GetRecoilPatternResetDelay())
+	{
+		RecoilPatternIndex = 0;
+	}
+
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	FVector2D RecoilOffset(GetRecoilPitchDegrees(), FMath::FRandRange(-GetRecoilYawDegrees(), GetRecoilYawDegrees()));
+	if (ActiveWeaponData && ActiveWeaponData->RecoilPattern.IsValidIndex(RecoilPatternIndex))
+	{
+		const FBORecoilPatternStep& PatternStep = ActiveWeaponData->RecoilPattern[RecoilPatternIndex];
+		RecoilOffset = FVector2D(PatternStep.PitchDegrees, PatternStep.YawDegrees) * GetRecoilPatternScale();
+	}
+
+	++RecoilPatternIndex;
+	LastRecoilTime = CurrentTime;
+	return RecoilOffset;
+}
+
 bool UBOWeaponComponent::CanFire() const
 {
 	const UWorld* World = GetWorld();
@@ -331,6 +368,18 @@ float UBOWeaponComponent::GetMovementAccuracySpeedThreshold() const
 	return ActiveWeaponData ? ActiveWeaponData->MovementAccuracySpeedThreshold : FallbackMovementAccuracySpeedThreshold;
 }
 
+float UBOWeaponComponent::GetRecoilPatternScale() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->RecoilPatternScale : 1.0f;
+}
+
+float UBOWeaponComponent::GetRecoilPatternResetDelay() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->RecoilPatternResetDelay : 0.22f;
+}
+
 void UBOWeaponComponent::UpdateShotSpreadRecovery() const
 {
 	const UWorld* World = GetWorld();
@@ -364,6 +413,12 @@ void UBOWeaponComponent::ResetShotSpread()
 {
 	CurrentShotSpreadDegrees = 0.0f;
 	LastSpreadUpdateTime = GetWorld() ? GetWorld()->GetTimeSeconds() : -1000.0f;
+}
+
+void UBOWeaponComponent::ResetRecoilPattern()
+{
+	RecoilPatternIndex = 0;
+	LastRecoilTime = -1000.0f;
 }
 
 FVector UBOWeaponComponent::ApplyServerSpread(const FVector& AimDirection) const
@@ -435,6 +490,7 @@ void UBOWeaponComponent::HandleFire(const FVector& TraceStart, const FVector& Ai
 	StoreCurrentAmmo();
 
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(BOWeaponTrace), true, Owner);
+	QueryParams.bReturnPhysicalMaterial = true;
 	if (const APawn* OwnerPawn = Cast<APawn>(Owner))
 	{
 		if (AController* Controller = OwnerPawn->GetController())
@@ -456,6 +512,9 @@ void UBOWeaponComponent::HandleFire(const FVector& TraceStart, const FVector& Ai
 
 	if (bHit && Hit.GetActor())
 	{
+		const EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+		MulticastImpactFeedback(Hit.ImpactPoint, Hit.ImpactNormal, static_cast<uint8>(SurfaceType));
+
 		APawn* OwnerPawn = Cast<APawn>(Owner);
 		AController* InstigatorController = OwnerPawn ? OwnerPawn->GetController() : nullptr;
 		const float Damage = GetDamage();
@@ -499,6 +558,7 @@ void UBOWeaponComponent::BeginReload()
 	bIsReloading = true;
 	ReloadEndTime = World->GetTimeSeconds() + GetReloadDuration();
 	ResetShotSpread();
+	ResetRecoilPattern();
 	World->GetTimerManager().SetTimer(ReloadTimerHandle, this, &UBOWeaponComponent::CompleteReload, GetReloadDuration(), false);
 }
 
@@ -527,6 +587,7 @@ void UBOWeaponComponent::CompleteReload()
 	bIsReloading = false;
 	ReloadEndTime = 0.0f;
 	ResetShotSpread();
+	ResetRecoilPattern();
 }
 
 void UBOWeaponComponent::HandleEquipWeaponSlot(int32 SlotIndex)
@@ -549,6 +610,7 @@ void UBOWeaponComponent::HandleEquipWeaponSlot(int32 SlotIndex)
 	AmmoInMagazine = AmmoBySlot.IsValidIndex(CurrentWeaponSlot) ? AmmoBySlot[CurrentWeaponSlot] : GetMagazineSize();
 	LastFireTime = -1000.0f;
 	ResetShotSpread();
+	ResetRecoilPattern();
 }
 
 void UBOWeaponComponent::InitializeAmmoSlots()
@@ -593,4 +655,33 @@ void UBOWeaponComponent::ClientConfirmHit_Implementation(AActor* HitActor, float
 	}
 
 	OnHitConfirmed.Broadcast(HitActor, Damage, RemainingHealth, bFatalHit);
+}
+
+void UBOWeaponComponent::MulticastImpactFeedback_Implementation(FVector_NetQuantize ImpactLocation, FVector_NetQuantizeNormal ImpactNormal, uint8 SurfaceType)
+{
+	PlayImpactFeedback(FVector(ImpactLocation), FVector(ImpactNormal).GetSafeNormal(), SurfaceType);
+}
+
+void UBOWeaponComponent::PlayImpactFeedback(const FVector& ImpactLocation, const FVector& ImpactNormal, uint8 SurfaceType) const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const UBOImpactFeedbackData* ImpactFeedbackData = LoadImpactFeedbackData();
+	const FBOImpactFeedback& Feedback = ImpactFeedbackData
+		? ImpactFeedbackData->FindFeedback(static_cast<EPhysicalSurface>(SurfaceType))
+		: GetDefault<UBOImpactFeedbackData>()->DefaultFeedback;
+	const FColor MarkerColor = Feedback.MarkerColor.ToFColor(true);
+	const FVector SafeNormal = ImpactNormal.IsNearlyZero() ? FVector::UpVector : ImpactNormal.GetSafeNormal();
+
+	DrawDebugSphere(World, ImpactLocation, Feedback.MarkerRadius, 8, MarkerColor, false, Feedback.MarkerDuration, 0, Feedback.MarkerThickness);
+	DrawDebugLine(World, ImpactLocation, ImpactLocation + SafeNormal * Feedback.MarkerRadius * 1.8f, MarkerColor, false, Feedback.MarkerDuration, 0, Feedback.MarkerThickness);
+
+	if (Feedback.ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Feedback.ImpactSound, ImpactLocation, Feedback.SoundVolume, Feedback.SoundPitch);
+	}
 }

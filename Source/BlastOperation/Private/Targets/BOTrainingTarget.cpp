@@ -4,8 +4,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Net/UnrealNetwork.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "TimerManager.h"
-#include "UObject/ConstructorHelpers.h"
 
 ABOTrainingTarget::ABOTrainingTarget()
 {
@@ -17,12 +17,7 @@ ABOTrainingTarget::ABOTrainingTarget()
 	SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
-	if (CubeMesh.Succeeded())
-	{
-		MeshComponent->SetStaticMesh(CubeMesh.Object);
-		MeshComponent->SetRelativeScale3D(FVector(0.6f, 0.12f, 1.4f));
-	}
+	MeshComponent->SetRelativeScale3D(FVector(0.6f, 0.12f, 1.4f));
 
 	HealthComponent = CreateDefaultSubobject<UBOHealthComponent>(TEXT("HealthComponent"));
 	ResetDelay = 1.0f;
@@ -74,6 +69,22 @@ void ABOTrainingTarget::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void ABOTrainingTarget::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (MeshComponent)
+	{
+		if (!MeshComponent->GetStaticMesh())
+		{
+			if (UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
+			{
+				MeshComponent->SetStaticMesh(CubeMesh);
+			}
+		}
+
+		if (UPhysicalMaterial* TargetPhysicalMaterial = LoadObject<UPhysicalMaterial>(nullptr, TEXT("/Game/BlastOperation/Materials/Physics/PM_BO_TrainingTarget.PM_BO_TrainingTarget")))
+		{
+			MeshComponent->SetPhysMaterialOverride(TargetPhysicalMaterial);
+		}
+	}
 
 	DefaultMeshScale = MeshComponent ? MeshComponent->GetRelativeScale3D() : FVector::OneVector;
 
