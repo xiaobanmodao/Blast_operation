@@ -113,78 +113,83 @@ void UBOCombatHUDWidget::BuildWidgetTree()
 	const FLinearColor MutedText(0.62f, 0.72f, 0.74f, 1.0f);
 
 	TopBarPanel = AddImage(TEXT("TopBarPanel"));
-	SetBoxBrush(TopBarPanel, PanelColor, FVector2D(620.0f, 58.0f));
-	SetCanvasSlot(TopBarPanel, FVector2D(0.0f, 18.0f), FVector2D(620.0f, 58.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
+	SetBoxBrush(TopBarPanel, PanelColor, FVector2D(460.0f, 54.0f));
+	SetCanvasSlot(TopBarPanel, FVector2D(0.0f, 16.0f), FVector2D(460.0f, 54.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
 
 	TopBarAccent = AddImage(TEXT("TopBarAccent"));
-	SetBoxBrush(TopBarAccent, AccentCyan, FVector2D(620.0f, 3.0f));
-	SetCanvasSlot(TopBarAccent, FVector2D(0.0f, 18.0f), FVector2D(620.0f, 3.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
+	SetBoxBrush(TopBarAccent, AccentCyan, FVector2D(460.0f, 3.0f));
+	SetCanvasSlot(TopBarAccent, FVector2D(0.0f, 16.0f), FVector2D(460.0f, 3.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
 
-	ModeText = AddText(TEXT("ModeText"), 15.0f, FLinearColor::White, ETextJustify::Center);
-	SetCanvasSlot(ModeText, FVector2D(0.0f, 25.0f), FVector2D(260.0f, 24.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
+	ModeText = AddText(TEXT("ModeText"), 13.0f, FLinearColor::White, ETextJustify::Center);
+	SetCanvasSlot(ModeText, FVector2D(0.0f, 23.0f), FVector2D(420.0f, 18.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
 	ModeText->SetText(FText::FromString(TEXT("BLAST OPERATION")));
 
-	ScoreText = AddText(TEXT("ScoreText"), 22.0f, AccentAmber, ETextJustify::Center);
-	SetCanvasSlot(ScoreText, FVector2D(0.0f, 46.0f), FVector2D(320.0f, 30.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
+	ScoreText = AddText(TEXT("ScoreText"), 16.0f, AccentAmber, ETextJustify::Center);
+	SetCanvasSlot(ScoreText, FVector2D(0.0f, 43.0f), FVector2D(420.0f, 22.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
 	ScoreText->SetText(FText::FromString(TEXT("ATTACK 0  |  0 DEFENSE")));
 
 	RoundText = AddText(TEXT("RoundText"), 12.0f, MutedText, ETextJustify::Center);
-	SetCanvasSlot(RoundText, FVector2D(0.0f, 76.0f), FVector2D(360.0f, 22.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
+	SetCanvasSlot(RoundText, FVector2D(0.0f, 72.0f), FVector2D(360.0f, 20.0f), FVector2D(0.5f, 0.0f), FVector2D(0.5f, 0.0f));
 	RoundText->SetText(FText::FromString(TEXT("TEST RANGE - LIVE FIRE")));
+	RoundText->SetVisibility(ESlateVisibility::Hidden);
 
 	HealthPanel = AddImage(TEXT("HealthPanel"));
-	SetBoxBrush(HealthPanel, PanelColor, FVector2D(292.0f, 96.0f));
-	SetCanvasSlot(HealthPanel, FVector2D(28.0f, -36.0f), FVector2D(292.0f, 96.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	SetBoxBrush(HealthPanel, PanelColor, FVector2D(220.0f, 76.0f));
+	SetCanvasSlot(HealthPanel, FVector2D(24.0f, -24.0f), FVector2D(220.0f, 76.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
 
 	HealthBarBack = AddImage(TEXT("HealthBarBack"));
-	SetBoxBrush(HealthBarBack, PanelColorSoft, FVector2D(228.0f, 8.0f));
-	SetCanvasSlot(HealthBarBack, FVector2D(52.0f, -58.0f), FVector2D(228.0f, 8.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	SetBoxBrush(HealthBarBack, PanelColorSoft, FVector2D(156.0f, 7.0f));
+	SetCanvasSlot(HealthBarBack, FVector2D(44.0f, -35.0f), FVector2D(156.0f, 7.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
 
 	HealthBarFill = AddImage(TEXT("HealthBarFill"));
-	SetBoxBrush(HealthBarFill, AccentCyan, FVector2D(228.0f, 8.0f));
-	SetCanvasSlot(HealthBarFill, FVector2D(52.0f, -58.0f), FVector2D(228.0f, 8.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	SetBoxBrush(HealthBarFill, AccentCyan, FVector2D(156.0f, 7.0f));
+	SetCanvasSlot(HealthBarFill, FVector2D(44.0f, -35.0f), FVector2D(156.0f, 7.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
 
 	HealthLabelText = AddText(TEXT("HealthLabelText"), 12.0f, MutedText);
-	SetCanvasSlot(HealthLabelText, FVector2D(52.0f, -113.0f), FVector2D(180.0f, 20.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
-	HealthLabelText->SetText(FText::FromString(TEXT("VITALS")));
+	SetCanvasSlot(HealthLabelText, FVector2D(44.0f, -78.0f), FVector2D(120.0f, 16.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	HealthLabelText->SetText(FText::FromString(TEXT("HP")));
 
-	HealthValueText = AddText(TEXT("HealthValueText"), 34.0f, FLinearColor::White);
-	SetCanvasSlot(HealthValueText, FVector2D(52.0f, -98.0f), FVector2D(110.0f, 42.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	HealthValueText = AddText(TEXT("HealthValueText"), 30.0f, FLinearColor::White);
+	SetCanvasSlot(HealthValueText, FVector2D(44.0f, -53.0f), FVector2D(110.0f, 34.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
 
 	ArmorText = AddText(TEXT("ArmorText"), 13.0f, MutedText, ETextJustify::Right);
-	SetCanvasSlot(ArmorText, FVector2D(158.0f, -90.0f), FVector2D(122.0f, 24.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	SetCanvasSlot(ArmorText, FVector2D(118.0f, -74.0f), FVector2D(82.0f, 18.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+	ArmorText->SetVisibility(ESlateVisibility::Hidden);
 
 	AmmoPanel = AddImage(TEXT("AmmoPanel"));
-	SetBoxBrush(AmmoPanel, PanelColor, FVector2D(330.0f, 104.0f));
-	SetCanvasSlot(AmmoPanel, FVector2D(-28.0f, -36.0f), FVector2D(330.0f, 104.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
+	SetBoxBrush(AmmoPanel, PanelColor, FVector2D(260.0f, 82.0f));
+	SetCanvasSlot(AmmoPanel, FVector2D(-24.0f, -24.0f), FVector2D(260.0f, 82.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
 
-	WeaponNameText = AddText(TEXT("WeaponNameText"), 15.0f, MutedText, ETextJustify::Right);
-	SetCanvasSlot(WeaponNameText, FVector2D(-56.0f, -120.0f), FVector2D(280.0f, 24.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
+	WeaponNameText = AddText(TEXT("WeaponNameText"), 13.0f, MutedText, ETextJustify::Right);
+	SetCanvasSlot(WeaponNameText, FVector2D(-44.0f, -82.0f), FVector2D(210.0f, 18.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
 
-	AmmoValueText = AddText(TEXT("AmmoValueText"), 40.0f, FLinearColor::White, ETextJustify::Right);
-	SetCanvasSlot(AmmoValueText, FVector2D(-118.0f, -96.0f), FVector2D(186.0f, 50.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
+	AmmoValueText = AddText(TEXT("AmmoValueText"), 34.0f, FLinearColor::White, ETextJustify::Right);
+	SetCanvasSlot(AmmoValueText, FVector2D(-104.0f, -48.0f), FVector2D(120.0f, 38.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
 
 	AmmoLabelText = AddText(TEXT("AmmoLabelText"), 16.0f, AccentAmber, ETextJustify::Left);
-	SetCanvasSlot(AmmoLabelText, FVector2D(-112.0f, -80.0f), FVector2D(70.0f, 24.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
+	SetCanvasSlot(AmmoLabelText, FVector2D(-98.0f, -43.0f), FVector2D(58.0f, 22.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
 
-	ReloadText = AddText(TEXT("ReloadText"), 14.0f, AccentAmber, ETextJustify::Right);
-	SetCanvasSlot(ReloadText, FVector2D(-56.0f, -58.0f), FVector2D(260.0f, 24.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
+	ReloadText = AddText(TEXT("ReloadText"), 12.0f, AccentAmber, ETextJustify::Right);
+	SetCanvasSlot(ReloadText, FVector2D(-44.0f, -25.0f), FVector2D(210.0f, 16.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 1.0f));
+	ReloadText->SetVisibility(ESlateVisibility::Hidden);
 
 	SlotPanel = AddImage(TEXT("SlotPanel"));
-	SetBoxBrush(SlotPanel, PanelColorSoft, FVector2D(330.0f, 42.0f));
-	SetCanvasSlot(SlotPanel, FVector2D(0.0f, -34.0f), FVector2D(330.0f, 42.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	SetBoxBrush(SlotPanel, PanelColorSoft, FVector2D(320.0f, 32.0f));
+	SetCanvasSlot(SlotPanel, FVector2D(0.0f, -18.0f), FVector2D(320.0f, 32.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
 
-	SlotPrimaryText = AddText(TEXT("SlotPrimaryText"), 14.0f, FLinearColor::White, ETextJustify::Center);
-	SetCanvasSlot(SlotPrimaryText, FVector2D(-82.0f, -65.0f), FVector2D(146.0f, 26.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	SlotPrimaryText = AddText(TEXT("SlotPrimaryText"), 12.0f, FLinearColor::White, ETextJustify::Center);
+	SetCanvasSlot(SlotPrimaryText, FVector2D(-78.0f, -42.0f), FVector2D(138.0f, 20.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
 
-	SlotSecondaryText = AddText(TEXT("SlotSecondaryText"), 14.0f, FLinearColor::White, ETextJustify::Center);
-	SetCanvasSlot(SlotSecondaryText, FVector2D(82.0f, -65.0f), FVector2D(146.0f, 26.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	SlotSecondaryText = AddText(TEXT("SlotSecondaryText"), 12.0f, FLinearColor::White, ETextJustify::Center);
+	SetCanvasSlot(SlotSecondaryText, FVector2D(78.0f, -42.0f), FVector2D(138.0f, 20.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
 
 	AccuracyText = AddText(TEXT("AccuracyText"), 12.0f, MutedText, ETextJustify::Center);
-	SetCanvasSlot(AccuracyText, FVector2D(0.0f, -100.0f), FVector2D(240.0f, 24.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	SetCanvasSlot(AccuracyText, FVector2D(0.0f, -58.0f), FVector2D(240.0f, 18.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	AccuracyText->SetVisibility(ESlateVisibility::Hidden);
 
 	StatusText = AddText(TEXT("CombatStatusText"), 12.0f, MutedText, ETextJustify::Center);
-	SetCanvasSlot(StatusText, FVector2D(0.0f, -126.0f), FVector2D(520.0f, 24.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	SetCanvasSlot(StatusText, FVector2D(0.0f, -82.0f), FVector2D(420.0f, 18.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 1.0f));
+	StatusText->SetVisibility(ESlateVisibility::Hidden);
 
 	DamageText = AddText(TEXT("DamageConfirmText"), 22.0f, FLinearColor::White, ETextJustify::Center);
 	SetCanvasSlot(DamageText, FVector2D(95.0f, -78.0f), FVector2D(240.0f, 48.0f), FVector2D(0.5f, 0.5f), FVector2D(0.5f, 0.5f));
@@ -265,13 +270,14 @@ void UBOCombatHUDWidget::UpdateCombatReadout()
 	if (ArmorText)
 	{
 		ArmorText->SetText(FText::FromString(FString::Printf(TEXT("ARMOR %.0f"), Armor)));
+		ArmorText->SetVisibility(Armor > 0.0f ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 	}
 
 	if (HealthBarFill)
 	{
-		const float HealthBarWidth = 228.0f * HealthAlpha;
-		SetBoxBrush(HealthBarFill, HealthColor, FVector2D(HealthBarWidth, 8.0f));
-		SetCanvasSlot(HealthBarFill, FVector2D(52.0f, -58.0f), FVector2D(HealthBarWidth, 8.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
+		const float HealthBarWidth = 156.0f * HealthAlpha;
+		SetBoxBrush(HealthBarFill, HealthColor, FVector2D(HealthBarWidth, 7.0f));
+		SetCanvasSlot(HealthBarFill, FVector2D(44.0f, -35.0f), FVector2D(HealthBarWidth, 7.0f), FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f));
 	}
 
 	if (WeaponNameText)
@@ -299,6 +305,7 @@ void UBOCombatHUDWidget::UpdateCombatReadout()
 	{
 		this->ReloadText->SetText(ReloadStatus.IsEmpty() ? FText::FromString(TEXT("READY")) : FText::FromString(ReloadStatus));
 		this->ReloadText->SetColorAndOpacity(FSlateColor(ReloadStatus.IsEmpty() ? InactiveSlotColor : ActiveSlotColor));
+		this->ReloadText->SetVisibility(ReloadStatus.IsEmpty() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 	}
 
 	if (SlotPrimaryText)

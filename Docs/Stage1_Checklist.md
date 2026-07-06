@@ -39,6 +39,7 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Fixed first-person mouse pitch direction and added PlayerController-owned combat HUD fallback creation.
 - Hardened the prototype weapon view model so it force-loads its mesh, stays visible in game, and sits closer to the first-person camera center.
 - Expanded the native combat HUD from a single debug readout into top match info, health bar, ammo block, reload state, weapon slots, and accuracy readout.
+- Rebalanced the Stage 1 HUD safe-area layout to remove overlapping debug text and keep only essential live combat readouts visible.
 
 ## Current Verification
 
