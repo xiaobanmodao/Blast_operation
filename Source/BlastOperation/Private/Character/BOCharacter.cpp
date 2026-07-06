@@ -179,6 +179,13 @@ void ABOCharacter::FireOnce()
 		return;
 	}
 
+	if (WeaponComponent->GetAmmoInMagazine() <= 0)
+	{
+		WeaponComponent->Reload();
+		StopFire();
+		return;
+	}
+
 	WeaponComponent->Fire(FirstPersonCamera->GetComponentLocation(), FirstPersonCamera->GetForwardVector());
 	ApplyLocalFireFeedback();
 }
@@ -223,6 +230,7 @@ void ABOCharacter::ApplyLocalFireFeedback()
 		return;
 	}
 
+	WeaponComponent->RecordLocalShotFeedback();
 	AddControllerPitchInput(-WeaponComponent->GetRecoilPitchDegrees());
 	AddControllerYawInput(FMath::FRandRange(-WeaponComponent->GetRecoilYawDegrees(), WeaponComponent->GetRecoilYawDegrees()));
 }

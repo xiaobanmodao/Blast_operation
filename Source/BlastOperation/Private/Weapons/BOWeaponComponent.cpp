@@ -3,6 +3,8 @@
 #include "Components/BOHealthComponent.h"
 #include "Core/BOLogChannels.h"
 #include "Engine/World.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,6 +25,11 @@ UBOWeaponComponent::UBOWeaponComponent()
 	FallbackReloadDuration = 1.8f;
 	FallbackStationarySpreadDegrees = 0.08f;
 	FallbackMovingSpreadDegrees = 1.4f;
+	FallbackAirborneSpreadDegrees = 2.8f;
+	FallbackShotSpreadIncreaseDegrees = 0.12f;
+	FallbackMaxShotSpreadDegrees = 1.0f;
+	FallbackSpreadRecoveryDegreesPerSecond = 2.2f;
+	FallbackMovementAccuracySpeedThreshold = 90.0f;
 	FallbackRecoilPitchDegrees = 0.45f;
 	FallbackRecoilYawDegrees = 0.18f;
 	AmmoInMagazine = FallbackMagazineSize;
@@ -34,6 +41,8 @@ UBOWeaponComponent::UBOWeaponComponent()
 	LastConfirmedRemainingHealth = -1.0f;
 	bLastHitWasFatal = false;
 	CurrentWeaponSlot = 0;
+	CurrentShotSpreadDegrees = 0.0f;
+	LastSpreadUpdateTime = -1000.0f;
 
 	static ConstructorHelpers::FObjectFinder<UBOWeaponData> RifleDataFinder(TEXT("/Game/BlastOperation/Weapons/Data/DA_BO_Rifle.DA_BO_Rifle"));
 	if (RifleDataFinder.Succeeded())
@@ -215,20 +224,6 @@ float UBOWeaponComponent::GetRecoilYawDegrees() const
 	return ActiveWeaponData ? ActiveWeaponData->RecoilYawDegrees : FallbackRecoilYawDegrees;
 }
 
-float UBOWeaponComponent::GetCurrentSpreadDegrees() const
-{
-	const AActor* Owner = GetOwner();
-	const bool bMoving = Owner && Owner->GetVelocity().SizeSquared2D() > FMath::Square(80.0f);
-
-	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
-	if (ActiveWeaponData)
-	{
-		return bMoving ? ActiveWeaponData->MovingSpreadDegrees : ActiveWeaponData->StationarySpreadDegrees;
-	}
-
-	return bMoving ? FallbackMovingSpreadDegrees : FallbackStationarySpreadDegrees;
-}
-
 bool UBOWeaponComponent::CanFire() const
 {
 	const UWorld* World = GetWorld();
@@ -238,6 +233,137 @@ bool UBOWeaponComponent::CanFire() const
 	}
 
 	return World->GetTimeSeconds() - LastFireTime >= GetSecondsBetweenShots();
+}
+
+float UBOWeaponComponent::GetCurrentSpreadDegrees() const
+{
+	UpdateShotSpreadRecovery();
+	return GetBaseSpreadDegrees() + CurrentShotSpreadDegrees;
+}
+
+float UBOWeaponComponent::GetNormalizedAccuracyPenalty() const
+{
+	const float StationarySpread = GetStationarySpreadDegrees();
+	const float MaxStateSpread = FMath::Max3(GetMovingSpreadDegrees(), GetAirborneSpreadDegrees(), StationarySpread);
+	const float MaxExpectedSpread = MaxStateSpread + GetMaxShotSpreadDegrees();
+	const float SpreadRange = FMath::Max(0.01f, MaxExpectedSpread - StationarySpread);
+
+	return FMath::Clamp((GetCurrentSpreadDegrees() - StationarySpread) / SpreadRange, 0.0f, 1.0f);
+}
+
+void UBOWeaponComponent::RecordLocalShotFeedback()
+{
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	if (AmmoInMagazine <= 0 || bIsReloading)
+	{
+		return;
+	}
+
+	AddShotSpreadPenalty();
+}
+
+float UBOWeaponComponent::GetBaseSpreadDegrees() const
+{
+	const AActor* Owner = GetOwner();
+	const float MovementThreshold = GetMovementAccuracySpeedThreshold();
+	const bool bMoving = Owner && Owner->GetVelocity().SizeSquared2D() > FMath::Square(MovementThreshold);
+
+	bool bAirborne = false;
+	if (const ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
+	{
+		if (const UCharacterMovementComponent* MovementComponent = OwnerCharacter->GetCharacterMovement())
+		{
+			bAirborne = MovementComponent->IsFalling();
+		}
+	}
+
+	if (bAirborne)
+	{
+		return GetAirborneSpreadDegrees();
+	}
+
+	return bMoving ? GetMovingSpreadDegrees() : GetStationarySpreadDegrees();
+}
+
+float UBOWeaponComponent::GetStationarySpreadDegrees() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->StationarySpreadDegrees : FallbackStationarySpreadDegrees;
+}
+
+float UBOWeaponComponent::GetMovingSpreadDegrees() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->MovingSpreadDegrees : FallbackMovingSpreadDegrees;
+}
+
+float UBOWeaponComponent::GetAirborneSpreadDegrees() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->AirborneSpreadDegrees : FallbackAirborneSpreadDegrees;
+}
+
+float UBOWeaponComponent::GetShotSpreadIncreaseDegrees() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->ShotSpreadIncreaseDegrees : FallbackShotSpreadIncreaseDegrees;
+}
+
+float UBOWeaponComponent::GetMaxShotSpreadDegrees() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->MaxShotSpreadDegrees : FallbackMaxShotSpreadDegrees;
+}
+
+float UBOWeaponComponent::GetSpreadRecoveryDegreesPerSecond() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->SpreadRecoveryDegreesPerSecond : FallbackSpreadRecoveryDegreesPerSecond;
+}
+
+float UBOWeaponComponent::GetMovementAccuracySpeedThreshold() const
+{
+	const UBOWeaponData* ActiveWeaponData = GetActiveWeaponData();
+	return ActiveWeaponData ? ActiveWeaponData->MovementAccuracySpeedThreshold : FallbackMovementAccuracySpeedThreshold;
+}
+
+void UBOWeaponComponent::UpdateShotSpreadRecovery() const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const float CurrentTime = World->GetTimeSeconds();
+	if (LastSpreadUpdateTime < 0.0f)
+	{
+		LastSpreadUpdateTime = CurrentTime;
+		return;
+	}
+
+	const float DeltaSeconds = FMath::Max(0.0f, CurrentTime - LastSpreadUpdateTime);
+	CurrentShotSpreadDegrees = FMath::Max(0.0f, CurrentShotSpreadDegrees - GetSpreadRecoveryDegreesPerSecond() * DeltaSeconds);
+	LastSpreadUpdateTime = CurrentTime;
+}
+
+void UBOWeaponComponent::AddShotSpreadPenalty()
+{
+	UpdateShotSpreadRecovery();
+	CurrentShotSpreadDegrees = FMath::Clamp(
+		CurrentShotSpreadDegrees + GetShotSpreadIncreaseDegrees(),
+		0.0f,
+		GetMaxShotSpreadDegrees());
+}
+
+void UBOWeaponComponent::ResetShotSpread()
+{
+	CurrentShotSpreadDegrees = 0.0f;
+	LastSpreadUpdateTime = GetWorld() ? GetWorld()->GetTimeSeconds() : -1000.0f;
 }
 
 FVector UBOWeaponComponent::ApplyServerSpread(const FVector& AimDirection) const
@@ -322,6 +448,8 @@ void UBOWeaponComponent::HandleFire(const FVector& TraceStart, const FVector& Ai
 	GetSanitizedTrace(TraceStart, AimDirection, SanitizedTraceStart, SanitizedAimDirection);
 
 	const FVector ShotDirection = ApplyServerSpread(SanitizedAimDirection);
+	AddShotSpreadPenalty();
+
 	const FVector TraceEnd = SanitizedTraceStart + ShotDirection * GetRange();
 	FHitResult Hit;
 	const bool bHit = World->LineTraceSingleByChannel(Hit, SanitizedTraceStart, TraceEnd, ECC_Visibility, QueryParams);
@@ -370,6 +498,7 @@ void UBOWeaponComponent::BeginReload()
 
 	bIsReloading = true;
 	ReloadEndTime = World->GetTimeSeconds() + GetReloadDuration();
+	ResetShotSpread();
 	World->GetTimerManager().SetTimer(ReloadTimerHandle, this, &UBOWeaponComponent::CompleteReload, GetReloadDuration(), false);
 }
 
@@ -397,6 +526,7 @@ void UBOWeaponComponent::CompleteReload()
 	StoreCurrentAmmo();
 	bIsReloading = false;
 	ReloadEndTime = 0.0f;
+	ResetShotSpread();
 }
 
 void UBOWeaponComponent::HandleEquipWeaponSlot(int32 SlotIndex)
@@ -418,6 +548,7 @@ void UBOWeaponComponent::HandleEquipWeaponSlot(int32 SlotIndex)
 
 	AmmoInMagazine = AmmoBySlot.IsValidIndex(CurrentWeaponSlot) ? AmmoBySlot[CurrentWeaponSlot] : GetMagazineSize();
 	LastFireTime = -1000.0f;
+	ResetShotSpread();
 }
 
 void UBOWeaponComponent::InitializeAmmoSlots()

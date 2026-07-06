@@ -27,25 +27,37 @@ void ABOHUD::DrawHUD()
 
 	const FVector2D Center(Canvas->ClipX * 0.5f, Canvas->ClipY * 0.5f);
 	const UBOCombatFeedbackData* FeedbackData = LoadFeedbackData();
+	const ABOCharacter* Character = GetOwningPawn() ? Cast<ABOCharacter>(GetOwningPawn()) : nullptr;
+	const UBOWeaponComponent* WeaponComponent = Character ? Character->GetWeaponComponent() : nullptr;
+
 	const float CrosshairSize = FeedbackData ? FeedbackData->CrosshairHalfLength : 8.0f;
+	const float CrosshairBaseGap = FeedbackData ? FeedbackData->CrosshairBaseGap : 5.0f;
+	const float CrosshairSpreadScale = FeedbackData ? FeedbackData->CrosshairSpreadScale : 10.0f;
+	const float CrosshairMaxDynamicGap = FeedbackData ? FeedbackData->CrosshairMaxDynamicGap : 30.0f;
+	const float CrosshairThickness = FeedbackData ? FeedbackData->CrosshairLineThickness : 1.0f;
+	const float CurrentSpreadDegrees = WeaponComponent ? WeaponComponent->GetCurrentSpreadDegrees() : 0.0f;
+	const float CrosshairGap = CrosshairBaseGap + FMath::Min(CrosshairMaxDynamicGap, CurrentSpreadDegrees * CrosshairSpreadScale);
 	const FLinearColor CrosshairColor = FeedbackData ? FeedbackData->CrosshairColor : FLinearColor::White;
 
-	FCanvasLineItem Horizontal(FVector2D(Center.X - CrosshairSize, Center.Y), FVector2D(Center.X + CrosshairSize, Center.Y));
-	Horizontal.SetColor(CrosshairColor);
-	Canvas->DrawItem(Horizontal);
+	auto DrawCrosshairLine = [this, CrosshairColor, CrosshairThickness](const FVector2D& Start, const FVector2D& End)
+	{
+		FCanvasLineItem LineItem(Start, End);
+		LineItem.SetColor(CrosshairColor);
+		LineItem.LineThickness = CrosshairThickness;
+		Canvas->DrawItem(LineItem);
+	};
 
-	FCanvasLineItem Vertical(FVector2D(Center.X, Center.Y - CrosshairSize), FVector2D(Center.X, Center.Y + CrosshairSize));
-	Vertical.SetColor(CrosshairColor);
-	Canvas->DrawItem(Vertical);
+	DrawCrosshairLine(FVector2D(Center.X - CrosshairGap - CrosshairSize, Center.Y), FVector2D(Center.X - CrosshairGap, Center.Y));
+	DrawCrosshairLine(FVector2D(Center.X + CrosshairGap, Center.Y), FVector2D(Center.X + CrosshairGap + CrosshairSize, Center.Y));
+	DrawCrosshairLine(FVector2D(Center.X, Center.Y - CrosshairGap - CrosshairSize), FVector2D(Center.X, Center.Y - CrosshairGap));
+	DrawCrosshairLine(FVector2D(Center.X, Center.Y + CrosshairGap), FVector2D(Center.X, Center.Y + CrosshairGap + CrosshairSize));
 
-	const ABOCharacter* Character = GetOwningPawn() ? Cast<ABOCharacter>(GetOwningPawn()) : nullptr;
 	if (!Character)
 	{
 		return;
 	}
 
 	const UBOHealthComponent* HealthComponent = Character->GetHealthComponent();
-	const UBOWeaponComponent* WeaponComponent = Character->GetWeaponComponent();
 	const float Health = HealthComponent ? HealthComponent->GetHealth() : 0.0f;
 	const int32 Ammo = WeaponComponent ? WeaponComponent->GetAmmoInMagazine() : 0;
 	const int32 Magazine = WeaponComponent ? WeaponComponent->GetMagazineSize() : 0;

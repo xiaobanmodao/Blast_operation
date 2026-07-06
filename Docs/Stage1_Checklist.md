@@ -27,6 +27,8 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Expanded hit confirmation with actual damage, remaining health, and fatal-hit context.
 - Added HUD damage numbers, fatal-hit coloring, and elimination feedback.
 - Added replicated training target active state plus short local damage pulse feedback before reset.
+- Expanded weapon accuracy tuning with stationary, moving, airborne, consecutive-shot, and recovery spread parameters.
+- Added dynamic four-segment crosshair expansion driven by current weapon spread.
 
 ## Current Verification
 
@@ -36,6 +38,6 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 
 ## Next
 
-- Continue recoil, spread, and movement accuracy tuning.
 - Replace the debug Canvas HUD with a first UMG combat HUD when the gameplay values stabilize.
 - Add per-surface impact audio/visual feedback once weapon and target materials are locked.
+- Add weapon-specific recoil pattern authoring once rifle and pistol baseline values feel right in playtests.

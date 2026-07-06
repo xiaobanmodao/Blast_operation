@@ -66,6 +66,15 @@ public:
 	float GetRecoilYawDegrees() const;
 
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetCurrentSpreadDegrees() const;
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
+	float GetNormalizedAccuracyPenalty() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Blast Operation|Weapon")
+	void RecordLocalShotFeedback();
+
+	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
 	float GetLastHitConfirmTime() const { return LastHitConfirmTime; }
 
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Weapon")
@@ -104,7 +113,17 @@ protected:
 	bool CanFire() const;
 	float GetRange() const;
 	float GetReloadDuration() const;
-	float GetCurrentSpreadDegrees() const;
+	float GetBaseSpreadDegrees() const;
+	float GetStationarySpreadDegrees() const;
+	float GetMovingSpreadDegrees() const;
+	float GetAirborneSpreadDegrees() const;
+	float GetShotSpreadIncreaseDegrees() const;
+	float GetMaxShotSpreadDegrees() const;
+	float GetSpreadRecoveryDegreesPerSecond() const;
+	float GetMovementAccuracySpeedThreshold() const;
+	void UpdateShotSpreadRecovery() const;
+	void AddShotSpreadPenalty();
+	void ResetShotSpread();
 	FVector ApplyServerSpread(const FVector& AimDirection) const;
 	void GetSanitizedTrace(const FVector& TraceStart, const FVector& AimDirection, FVector& OutTraceStart, FVector& OutAimDirection) const;
 
@@ -139,6 +158,21 @@ protected:
 	float FallbackMovingSpreadDegrees;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackAirborneSpreadDegrees;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackShotSpreadIncreaseDegrees;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackMaxShotSpreadDegrees;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackSpreadRecoveryDegreesPerSecond;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
+	float FallbackMovementAccuracySpeedThreshold;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
 	float FallbackRecoilPitchDegrees;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (ClampMin = "0.0"))
@@ -164,5 +198,7 @@ protected:
 	float LastConfirmedDamage;
 	float LastConfirmedRemainingHealth;
 	bool bLastHitWasFatal;
+	mutable float CurrentShotSpreadDegrees;
+	mutable float LastSpreadUpdateTime;
 	FTimerHandle ReloadTimerHandle;
 };

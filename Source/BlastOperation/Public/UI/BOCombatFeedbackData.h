@@ -40,6 +40,18 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "1.0"))
 	float CrosshairHalfLength = 8.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "0.0"))
+	float CrosshairBaseGap = 5.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "0.0"))
+	float CrosshairSpreadScale = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "0.0"))
+	float CrosshairMaxDynamicGap = 30.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "0.1"))
+	float CrosshairLineThickness = 1.4f;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|HUD", meta = (ClampMin = "1.0"))
 	float HitMarkerLength = 15.0f;
 

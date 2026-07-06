@@ -163,6 +163,11 @@ void ConfigureStage1WeaponAssets()
 	Rifle->ReloadDuration = 1.95f;
 	Rifle->StationarySpreadDegrees = 0.045f;
 	Rifle->MovingSpreadDegrees = 1.45f;
+	Rifle->AirborneSpreadDegrees = 3.2f;
+	Rifle->ShotSpreadIncreaseDegrees = 0.13f;
+	Rifle->MaxShotSpreadDegrees = 1.25f;
+	Rifle->SpreadRecoveryDegreesPerSecond = 2.35f;
+	Rifle->MovementAccuracySpeedThreshold = 120.0f;
 	Rifle->RecoilPitchDegrees = 0.36f;
 	Rifle->RecoilYawDegrees = 0.14f;
 	SaveAsset(Rifle);
@@ -179,6 +184,11 @@ void ConfigureStage1WeaponAssets()
 	Pistol->ReloadDuration = 1.35f;
 	Pistol->StationarySpreadDegrees = 0.095f;
 	Pistol->MovingSpreadDegrees = 1.25f;
+	Pistol->AirborneSpreadDegrees = 2.55f;
+	Pistol->ShotSpreadIncreaseDegrees = 0.075f;
+	Pistol->MaxShotSpreadDegrees = 0.42f;
+	Pistol->SpreadRecoveryDegreesPerSecond = 3.8f;
+	Pistol->MovementAccuracySpeedThreshold = 120.0f;
 	Pistol->RecoilPitchDegrees = 0.48f;
 	Pistol->RecoilYawDegrees = 0.2f;
 	SaveAsset(Pistol);
@@ -197,6 +207,10 @@ void ConfigureStage1FeedbackAssets()
 	Feedback->HitMarkerDuration = 0.2f;
 	Feedback->DamageNumberDuration = 0.58f;
 	Feedback->CrosshairHalfLength = 7.0f;
+	Feedback->CrosshairBaseGap = 5.0f;
+	Feedback->CrosshairSpreadScale = 10.0f;
+	Feedback->CrosshairMaxDynamicGap = 30.0f;
+	Feedback->CrosshairLineThickness = 1.4f;
 	Feedback->HitMarkerLength = 16.0f;
 	Feedback->HitMarkerGap = 4.5f;
 	Feedback->DamageNumberRise = 28.0f;
