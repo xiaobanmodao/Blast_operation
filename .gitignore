@@ -1,0 +1,46 @@
+# Unreal Engine generated files
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# User and machine-local settings
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserdata/
+*.xcuserstate
+*.pidb
+*.booproj
+*.svd
+*.tmp
+*.log
+*.cache
+*.bak
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# IDE folders
+.idea/
+.vscode/
+
+# Platform/editor transient folders
+FileOpenOrder/
+Logs/
+Crashes/
+Autosaves/
+Collections/
+
+# Packaged builds
+Packaged/
+Releases/
+StagedBuilds/
+

@@ -1,0 +1,8 @@
+#include "Core/BOLogChannels.h"
+
+DEFINE_LOG_CATEGORY(LogBlastOperation);
+DEFINE_LOG_CATEGORY(LogBONet);
+DEFINE_LOG_CATEGORY(LogBORound);
+DEFINE_LOG_CATEGORY(LogBOWeapons);
+DEFINE_LOG_CATEGORY(LogBOBomb);
+
