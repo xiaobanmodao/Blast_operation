@@ -15,14 +15,17 @@ public class BlastOperation : ModuleRules
 			"EnhancedInput",
 			"GameplayTags",
 			"InputCore",
-			"NetCore"
+			"NetCore",
+			"UMG"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
 			"AIModule",
 			"GameplayAbilities",
-			"GameplayTasks"
+			"GameplayTasks",
+			"Slate",
+			"SlateCore"
 		});
 	}
 }

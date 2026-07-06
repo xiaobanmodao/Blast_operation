@@ -16,6 +16,7 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Updated `ABOGameModeBase` to spawn `ABOCharacter` and draw the starter HUD.
 - Added `ABOTrainingTarget` with health, death hiding, and automatic reset.
 - Added `ABOHUD` with a simple crosshair and HP/ammo readout.
+- Added `UBOCombatHUDWidget` as the first native UMG combat HUD.
 - Added `Tools/Editor/PopulateStage1TestRange.py` for repeatable test range setup.
 - Populated `BO_TestRange` with a PlayerStart, floor, side walls, backstop, lights, and three starter targets.
 - Added Rifle and Pistol weapon data assets under `/Game/BlastOperation/Weapons/Data`.
@@ -29,6 +30,7 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Added replicated training target active state plus short local damage pulse feedback before reset.
 - Expanded weapon accuracy tuning with stationary, moving, airborne, consecutive-shot, and recovery spread parameters.
 - Added dynamic four-segment crosshair expansion driven by current weapon spread.
+- Replaced the debug Canvas HUD drawing path with a native UMG widget mounted by `ABOHUD`.
 
 ## Current Verification
 
@@ -38,6 +40,6 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 
 ## Next
 
-- Replace the debug Canvas HUD with a first UMG combat HUD when the gameplay values stabilize.
 - Add per-surface impact audio/visual feedback once weapon and target materials are locked.
 - Add weapon-specific recoil pattern authoring once rifle and pistol baseline values feel right in playtests.
+- Promote the native UMG HUD to Blueprint-authored layout once final visual language is established.
