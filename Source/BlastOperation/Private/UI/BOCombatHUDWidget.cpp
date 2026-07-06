@@ -11,6 +11,7 @@
 #include "Styling/CoreStyle.h"
 #include "UI/BOCombatFeedbackData.h"
 #include "Weapons/BOWeaponComponent.h"
+#include "Widgets/SWidget.h"
 
 namespace
 {
@@ -56,6 +57,21 @@ void UBOCombatHUDWidget::NativeConstruct()
 	UpdateCombatReadout();
 }
 
+TSharedRef<SWidget> UBOCombatHUDWidget::RebuildWidget()
+{
+	if (!WidgetTree)
+	{
+		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
+	}
+
+	if (!RootPanel)
+	{
+		BuildWidgetTree();
+	}
+
+	return Super::RebuildWidget();
+}
+
 void UBOCombatHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
@@ -65,6 +81,11 @@ void UBOCombatHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 
 void UBOCombatHUDWidget::BuildWidgetTree()
 {
+	if (!WidgetTree)
+	{
+		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
+	}
+
 	RootPanel = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("CombatHUDRoot"));
 	WidgetTree->RootWidget = RootPanel;
 

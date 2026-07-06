@@ -35,6 +35,10 @@ world = unreal.EditorLoadingAndSavingUtils.load_map(MAP_PATH)
 if not world:
     raise RuntimeError(f"Failed to load map: {MAP_PATH}")
 
+game_mode_class = unreal.load_class(None, "/Script/BlastOperation.BOGameModeBase")
+world_settings = world.get_world_settings()
+world_settings.set_editor_property("default_game_mode", game_mode_class)
+
 clear_generated_actors()
 
 player_start = tag_actor(ACTOR_SUBSYSTEM.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 120)))

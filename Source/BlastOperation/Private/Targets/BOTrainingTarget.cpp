@@ -28,6 +28,15 @@ ABOTrainingTarget::ABOTrainingTarget()
 	DamageFlashStrength = 0.0f;
 }
 
+void ABOTrainingTarget::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	ApplyDefaultVisualSetup();
+	DefaultMeshScale = MeshComponent ? MeshComponent->GetRelativeScale3D() : FVector::OneVector;
+	ApplyTargetActiveState();
+}
+
 void ABOTrainingTarget::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -70,22 +79,7 @@ void ABOTrainingTarget::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (MeshComponent)
-	{
-		if (!MeshComponent->GetStaticMesh())
-		{
-			if (UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
-			{
-				MeshComponent->SetStaticMesh(CubeMesh);
-			}
-		}
-
-		if (UPhysicalMaterial* TargetPhysicalMaterial = LoadObject<UPhysicalMaterial>(nullptr, TEXT("/Game/BlastOperation/Materials/Physics/PM_BO_TrainingTarget.PM_BO_TrainingTarget")))
-		{
-			MeshComponent->SetPhysMaterialOverride(TargetPhysicalMaterial);
-		}
-	}
-
+	ApplyDefaultVisualSetup();
 	DefaultMeshScale = MeshComponent ? MeshComponent->GetRelativeScale3D() : FVector::OneVector;
 
 	if (HealthComponent)
@@ -95,6 +89,27 @@ void ABOTrainingTarget::BeginPlay()
 	}
 
 	ApplyTargetActiveState();
+}
+
+void ABOTrainingTarget::ApplyDefaultVisualSetup()
+{
+	if (!MeshComponent)
+	{
+		return;
+	}
+
+	if (!MeshComponent->GetStaticMesh())
+	{
+		if (UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
+		{
+			MeshComponent->SetStaticMesh(CubeMesh);
+		}
+	}
+
+	if (UPhysicalMaterial* TargetPhysicalMaterial = LoadObject<UPhysicalMaterial>(nullptr, TEXT("/Game/BlastOperation/Materials/Physics/PM_BO_TrainingTarget.PM_BO_TrainingTarget")))
+	{
+		MeshComponent->SetPhysMaterialOverride(TargetPhysicalMaterial);
+	}
 }
 
 void ABOTrainingTarget::HandleDeath(AActor* DeadActor)

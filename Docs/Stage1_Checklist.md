@@ -35,12 +35,14 @@ Stage 1 turns the project from a clean Unreal foundation into a first playable s
 - Added per-surface impact feedback data, physical material assets, and multicast impact markers.
 - Added Blueprint extension events to `UBOCombatHUDWidget` so a `WBP` layout can inherit the native data path.
 - Updated `BO_TestRange` generation to apply Concrete and Metal physical materials to generated range geometry.
+- Added a visible first-person weapon view model, editor-visible training target setup, map-level `BOGameModeBase` override, and `VerifyStage1TestRange.py`.
 
 ## Current Verification
 
 - `BlastOperationEditor Mac Development` build succeeds.
 - `PopulateStage1TestRange.py` commandlet succeeds with 0 errors and 0 warnings.
 - `BOCreateStage1Assets` commandlet succeeds with 0 errors and 0 warnings.
+- `VerifyStage1TestRange.py` commandlet succeeds with 0 errors and 0 warnings.
 
 ## Next
 

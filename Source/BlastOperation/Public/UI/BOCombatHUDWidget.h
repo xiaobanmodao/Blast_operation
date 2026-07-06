@@ -7,6 +7,7 @@
 class UBOCombatFeedbackData;
 class UCanvasPanel;
 class UImage;
+class SWidget;
 class UTextBlock;
 class UWidget;
 
@@ -20,6 +21,8 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 protected:
+	virtual TSharedRef<SWidget> RebuildWidget() override;
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Blast Operation|HUD")
 	void OnCombatReadoutUpdated(const FText& Status, float Health, int32 Ammo, int32 MagazineSize, int32 WeaponSlot);
 

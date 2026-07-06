@@ -15,6 +15,7 @@ class BLASTOPERATION_API ABOTrainingTarget : public AActor
 public:
 	ABOTrainingTarget();
 
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -35,6 +36,7 @@ protected:
 
 	void DeactivateTarget();
 	void ResetTarget();
+	void ApplyDefaultVisualSetup();
 	void ApplyTargetActiveState();
 	void PlayDamageFeedback(float DamageAmount);
 

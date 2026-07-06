@@ -9,6 +9,7 @@ class UBOHealthComponent;
 class UBOWeaponComponent;
 class UCameraComponent;
 class UInputAction;
+class UStaticMeshComponent;
 
 UCLASS(Blueprintable)
 class BLASTOPERATION_API ABOCharacter : public ACharacter
@@ -18,6 +19,7 @@ class BLASTOPERATION_API ABOCharacter : public ACharacter
 public:
 	ABOCharacter();
 
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintPure, Category = "Blast Operation|Camera")
@@ -39,6 +41,8 @@ protected:
 	void EquipPrimaryWeapon();
 	void EquipSecondaryWeapon();
 	void ApplyLocalFireFeedback();
+	void UpdateWeaponViewModel();
+	void ConfigureWeaponViewMesh(UStaticMeshComponent* MeshComponent, const FVector& RelativeLocation, const FRotator& RelativeRotation, const FVector& RelativeScale) const;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FirstPersonCamera;
@@ -48,6 +52,18 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Weapon", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBOWeaponComponent> WeaponComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Weapon View", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> WeaponBodyMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Weapon View", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> WeaponBarrelMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Weapon View", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> WeaponGripMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blast Operation|Weapon View", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> WeaponSightMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Blast Operation|Input")
 	TObjectPtr<UInputAction> MoveAction;
